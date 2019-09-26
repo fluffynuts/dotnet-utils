@@ -5,6 +5,7 @@ namespace asmdeps
 {
     public class AssemblyDependencyInfo
     {
+        private readonly AssemblyName _fullName;
         public string FullName { get; }
         public bool Loaded { get; set; }
         public int Level { get; }
@@ -14,13 +15,14 @@ namespace asmdeps
         public string PublicKeyToken { get; set; }
         
         public string PrettyFullName =>
-            $"{Name.BrightYellow()}, Version={Version.ToString().BrightGreen()}, Culture={CultureName.BrightCyan()}, PublicKeyToken={PublicKeyToken.BrightRed()}";
+            _fullName.PrettyFullName();
 
         public AssemblyDependencyInfo(
             AssemblyName fullName, 
             bool loaded, 
             int level)
         {
+            _fullName = fullName;
             FullName = fullName.FullName;
             Version = fullName.Version;
             Name = fullName.Name;

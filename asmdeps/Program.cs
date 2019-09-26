@@ -46,7 +46,7 @@ namespace asmdeps
             bool noColor)
         {
             var name = asm.GetName();
-            Console.WriteLine($"{name.Name} ({name.Version})");
+            Console.WriteLine(name.PrettyFullName());
             foreach (var dep in deps)
             {
                 var indent = new string(' ', dep.Level);

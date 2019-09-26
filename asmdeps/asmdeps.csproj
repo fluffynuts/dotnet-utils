@@ -14,5 +14,8 @@
       <Link>ConsoleExtensions.cs</Link>
     </Compile>
   </ItemGroup>
+  <Target Name="OnBuildCompletion" AfterTargets="CoreBuild">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\bin"/>
+  </Target>
 
 </Project>

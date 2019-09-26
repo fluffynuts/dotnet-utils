@@ -39,6 +39,11 @@ namespace asmdeps
 
         public static string ToHex(this byte[] bytes)
         {
+            if (bytes == null)
+            {
+                return null;
+            }
+
             return string.Join("",
                 bytes.Select(b => $"{b:x2}")
             );
