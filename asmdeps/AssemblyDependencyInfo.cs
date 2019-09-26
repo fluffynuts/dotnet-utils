@@ -8,7 +8,7 @@ namespace asmdeps
         private readonly AssemblyName _fullName;
         public string FullName { get; }
         public bool Loaded { get; set; }
-        public int Level { get; }
+        public int Level { get; set; }
         public Version Version { get; }
         public string Name { get; set; }
         public string CultureName { get; set; }

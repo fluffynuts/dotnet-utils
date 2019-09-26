@@ -6,16 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="asmdeps" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Include="..\Pastel\src\ConsoleExtensions.cs">
       <Link>ConsoleExtensions.cs</Link>
     </Compile>
   </ItemGroup>
   <Target Name="OnBuildCompletion" AfterTargets="CoreBuild">
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\bin"/>
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\bin" />
   </Target>
 
 </Project>

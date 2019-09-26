@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Pastel;
 
 namespace asmdeps
 {
@@ -10,21 +12,157 @@ namespace asmdeps
     {
         static int Main(string[] args)
         {
-            var noColor = args.Any(a => a == "--no-color");
+            var noColor = args.Any(a => a == "--no-color") || Console.IsOutputRedirected;
             var otherArgs = args.Where(a => a != "--no-color").ToArray();
-            if (otherArgs.Length == 0)
+
+            var reverseLookup = new List<string>();
+            var finalArgs = new List<string>();
+            var inReverse = false;
+            foreach (var arg in args)
+            {
+                if (arg == "--reverse")
+                {
+                    inReverse = true;
+                    continue;
+                }
+
+                if (inReverse)
+                {
+                    reverseLookup.Add(arg);
+                    inReverse = false;
+                    continue;
+                }
+
+                finalArgs.Add(arg);
+            }
+
+            if (!finalArgs.Any())
             {
                 Console.Error.WriteLine("No assemblies provided to inspect. Exiting.");
                 return 2;
             }
 
-            foreach (var asmFile in otherArgs)
+            var asmPaths = finalArgs
+                .Select(p => p.Glob())
+                .SelectMany(o => o);
+
+            if (reverseLookup.Any())
             {
+                DumpReverseLookupFor(asmPaths, reverseLookup, noColor);
+            }
+            else
+            {
+                DumpAssemblyVersionInfoFor(asmPaths, noColor, otherArgs);
+            }
+
+
+            return 0;
+        }
+
+        private static void DumpReverseLookupFor(
+            IEnumerable<string> asmPaths,
+            IEnumerable<string> reverseLookup,
+            bool noColor)
+        {
+            var final = new Dictionary<string, List<List<AssemblyDependencyInfo>>>();
+
+            foreach (var asmFile in asmPaths)
+            {
+                var asm = TryLoadPathForReflectionOnly(asmFile);
+                if (asm == null)
+                {
+                    continue;
+                }
+
                 var root = Path.GetDirectoryName(asmFile);
-                var asm = Assembly.ReflectionOnlyLoadFrom(asmFile);
                 var deps = new List<AssemblyDependencyInfo>();
                 var errors = ListFileDeps(asm, deps, root);
-                DisplayDeps(asm, deps, noColor);
+                foreach (var seek in reverseLookup)
+                {
+                    if (deps.Any(d => d.Name.Equals(seek, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        if (!final.ContainsKey(seek))
+                        {
+                            final[seek] = new List<List<AssemblyDependencyInfo>>();
+                        }
+
+                        foreach (var dep in deps)
+                        {
+                            dep.Level++;
+                        }
+
+                        deps.Insert(0, new AssemblyDependencyInfo(
+                            asm.GetName(),
+                            true,
+                            0));
+                        final[seek].Add(deps);
+                    }
+                }
+            }
+
+            var dumped = 0;
+            foreach (var kvp in final)
+            {
+                if (dumped++ > 0)
+                {
+                    Console.WriteLine("\n");
+                }
+
+                foreach (var tree in kvp.Value)
+                {
+                    Console.WriteLine($"Depends on {kvp.Key.BrightRed()}:");
+                    var trimmed = TrimTree(tree, kvp.Key);
+                    DisplayDeps(trimmed, noColor, s => s.Contains(kvp.Key));
+                }
+            }
+        }
+
+        private static IEnumerable<AssemblyDependencyInfo> TrimTree(
+            IEnumerable<AssemblyDependencyInfo> tree,
+            string toNode)
+        {
+            var reversed = tree.Reversed();
+            var result = new List<AssemblyDependencyInfo>();
+            var inHit = false;
+            foreach (var node in reversed)
+            {
+                if (node.Name.Equals(toNode, StringComparison.OrdinalIgnoreCase))
+                {
+                    inHit = true;
+                }
+
+                if (inHit)
+                {
+                    result.Add(node);
+                }
+
+                if (node.Level == 1)
+                {
+                    inHit = false;
+                }
+            }
+            result.AddRange(tree.Where(n => n.Level == 0));
+            return result.Reversed();
+        }
+
+        private static void DumpAssemblyVersionInfoFor(
+            IEnumerable<string> assemblyPaths,
+            bool noColor,
+            string[] otherArgs)
+        {
+            foreach (var asmFile in assemblyPaths)
+            {
+                var asm = TryLoadPathForReflectionOnly(asmFile);
+                if (asm == null)
+                {
+                    LogErrorIfExplicitlySelected(asmFile, otherArgs);
+                    continue;
+                }
+
+                var deps = new List<AssemblyDependencyInfo>();
+                var root = Path.GetDirectoryName(asmFile);
+                var errors = ListFileDeps(asm, deps, root);
+                DisplayAssemblyAndDeps(asm, deps, noColor);
                 if (!errors.Any())
                 {
                     continue;
@@ -36,36 +174,93 @@ namespace asmdeps
                     Console.WriteLine(error);
                 }
             }
-
-            return 0;
         }
 
-        private static void DisplayDeps(
+        private static void LogErrorIfExplicitlySelected(
+            string asmFile,
+            string[] otherArgs)
+        {
+            if (otherArgs.Any(o => o.ToLower() == asmFile.ToLower()))
+            {
+                Console.Error.WriteLine($"Unable to load explicitly selected path as assembly: {asmFile}".BrightRed());
+            }
+        }
+
+        private static Dictionary<string, Assembly> LoadedAssemblies = new Dictionary<string, Assembly>();
+        private static Assembly TryLoadPathForReflectionOnly(string asmFile)
+        {
+            if (LoadedAssemblies.TryGetValue(asmFile, out var result))
+            {
+                return result;
+            }
+
+            try
+            {
+                Debug($"Attempt load from: {asmFile}");
+                var toAdd = File.Exists(asmFile)
+                    ? Assembly.ReflectionOnlyLoadFrom(asmFile)
+                    : Assembly.ReflectionOnlyLoad(asmFile);
+                LoadedAssemblies[asmFile] = toAdd;
+                return toAdd;
+            }
+            catch (Exception ex)
+            {
+                Debug($"Can't load assembly at {asmFile}");
+                Debug($" -> {ex.Message}");
+                return null;
+            }
+        }
+        
+        private static bool ShowDebug = Environment.GetEnvironmentVariable("DEBUG") != null;
+
+        private static void Debug(params object[] args)
+        {
+            if (!ShowDebug)
+            {
+                return;
+            }
+
+            Console.WriteLine(
+                $"{string.Join(" ", args).Grey()}"
+            );
+        }
+
+        private static void DisplayAssemblyAndDeps(
             Assembly asm,
             IEnumerable<AssemblyDependencyInfo> deps,
             bool noColor)
         {
             var name = asm.GetName();
-            Console.WriteLine(name.PrettyFullName());
+            Console.WriteLine(noColor ? name.FullName : name.PrettyFullName());
+            DisplayDeps(deps, noColor);
+        }
+
+        private static void DisplayDeps(
+            IEnumerable<AssemblyDependencyInfo> deps,
+            bool noColor, 
+            Func<string, bool> highlight = null)
+        {
             foreach (var dep in deps)
             {
                 var indent = new string(' ', dep.Level);
                 var message = (dep.Loaded)
                     ? ""
                     : "    (unable to load assembly)";
-                var prefix = $"{indent}{indent}└-".Grey();
-                Console.WriteLine(
-                    noColor
-                        ? $"{prefix}{dep.FullName}{message}"
-                        : $"{prefix}{dep.PrettyFullName}{message}"
-                );
-            }
-        }
+                var prefix = $"{indent}{indent}{(noColor ? "-" :"└-")}";
+                var toWrite = noColor
+                        ? $"{prefix} {dep.FullName}{message}"
+                        : $"{prefix.Grey()} {dep.PrettyFullName}{message}";
+                if (!noColor)
+                {
+                    var shouldHighlight = highlight?.Invoke(toWrite) ?? false;
+                    if (shouldHighlight)
+                    {
+                        toWrite = toWrite.PastelBg(Color.FromArgb(255, 0, 0, 128));
+                    }
+                }
 
-        private static AssemblyName ReadAssemblyName(string asmFile)
-        {
-            var asm = Assembly.ReflectionOnlyLoad(asmFile);
-            return asm.GetName();
+                Console.WriteLine(toWrite);
+            }
         }
 
         // Define other methods and classes here
@@ -77,7 +272,7 @@ namespace asmdeps
         {
             var errors = new List<string>();
             var refs = asm.GetReferencedAssemblies();
-            foreach (var r in refs)
+            foreach (var r in refs.OrderBy(r => r.Name))
             {
                 if (deps.Any(d => d.FullName == r.FullName))
                 {
@@ -106,23 +301,26 @@ namespace asmdeps
             string root,
             int listLevel = 0)
         {
-            Assembly asm;
-            try
-            {
-                asm = Assembly.ReflectionOnlyLoad(asmName);
-            }
-            catch
+            var asm = TryLoadPathForReflectionOnly(asmName);
+            if (asm == null)
             {
                 var name = new AssemblyName(asmName);
                 var check = Path.Combine(root, name.Name + ".dll");
-                asm = Assembly.ReflectionOnlyLoadFrom(check);
+                if (!File.Exists(check))
+                {
+                    throw new FileNotFoundException(check);
+                }
+                asm = TryLoadPathForReflectionOnly(check);
             }
 
-            var refs = asm.GetReferencedAssemblies();
+            var refs = asm?.GetReferencedAssemblies() ?? new AssemblyName[0];
             foreach (var r in refs)
             {
                 if (deps.Any(d => d.FullName == r.FullName))
+                {
                     continue;
+                }
+
                 var dep = new AssemblyDependencyInfo(r, true, listLevel);
                 deps.Add(dep);
                 try
@@ -131,12 +329,17 @@ namespace asmdeps
                     var asmToCheckFile = Path.Combine(root, assemblyName.Name + ".dll");
                     if (File.Exists(asmToCheckFile))
                     {
-                        var asmToCheck = Assembly.ReflectionOnlyLoadFrom(asmToCheckFile);
-                        ListFileDeps(asmToCheck, deps, root);
+                        var asmToCheck = TryLoadPathForReflectionOnly(asmToCheckFile);
+                        if (asmToCheck == null)
+                        {
+                            continue;
+                        }
+
+                        ListFileDeps(asmToCheck, deps, root, listLevel + 1);
                     }
                     else
                     {
-                        ListAsmDeps(r.FullName, deps, root);
+                        ListAsmDeps(r.FullName, deps, root, listLevel + 1);
                     }
                 }
                 catch (FileNotFoundException)
