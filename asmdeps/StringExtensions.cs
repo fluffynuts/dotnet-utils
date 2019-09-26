@@ -6,10 +6,11 @@ namespace asmdeps
 {
     public static class StringExtensions
     {
-        private static readonly Color _brightRed = Color.FromArgb(1, 255, 50, 50);
-        private static readonly Color _brightGreen = Color.FromArgb(1, 50, 255, 0);
-        private static readonly Color _brightCyan = Color.FromArgb(1, 50, 255, 255);
-        private static readonly Color _brightYellow = Color.FromArgb(1, 255, 255, 50);
+        private static readonly Color _brightRed = Color.FromArgb(255, 255, 50, 50);
+        private static readonly Color _brightGreen = Color.FromArgb(255, 50, 255, 0);
+        private static readonly Color _brightCyan = Color.FromArgb(255, 50, 255, 255);
+        private static readonly Color _brightYellow = Color.FromArgb(255, 255, 255, 50);
+        private static readonly Color _grey = Color.FromArgb(255, 128, 128, 128);
 
         public static string BrightRed(this string str)
         {
@@ -29,6 +30,11 @@ namespace asmdeps
         public static string BrightYellow(this string str)
         {
             return str.Pastel(_brightYellow);
+        }
+
+        public static string Grey(this string str)
+        {
+            return str.Pastel(_grey);
         }
 
         public static string ToHex(this byte[] bytes)

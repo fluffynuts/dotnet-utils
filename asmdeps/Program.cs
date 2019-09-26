@@ -53,10 +53,11 @@ namespace asmdeps
                 var message = (dep.Loaded)
                     ? ""
                     : "    (unable to load assembly)";
+                var prefix = $"{indent}{indent}└-".Grey();
                 Console.WriteLine(
                     noColor
-                        ? $"{indent}{indent}└-{dep.FullName}{message}"
-                        : $"{indent}{indent}└-{dep.PrettyFullName}{message}"
+                        ? $"{prefix}{dep.FullName}{message}"
+                        : $"{prefix}{dep.PrettyFullName}{message}"
                 );
             }
         }
