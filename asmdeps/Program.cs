@@ -6,16 +6,25 @@ using System.Reflection;
 
 namespace asmdeps
 {
-    class Program
+    static class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            foreach (var asmFile in args)
+            var noColor = args.Any(a => a == "--no-color");
+            var otherArgs = args.Where(a => a != "--no-color").ToArray();
+            if (otherArgs.Length == 0)
+            {
+                Console.Error.WriteLine("No assemblies provided to inspect. Exiting.");
+                return 2;
+            }
+
+            foreach (var asmFile in otherArgs)
             {
                 var root = Path.GetDirectoryName(asmFile);
+                var asm = Assembly.ReflectionOnlyLoadFrom(asmFile);
                 var deps = new List<AssemblyDependencyInfo>();
-                var errors = ListFileDeps(asmFile, deps, root);
-                DisplayDeps(asmFile, deps);
+                var errors = ListFileDeps(asm, deps, root);
+                DisplayDeps(asm, deps, noColor);
                 if (!errors.Any())
                 {
                     continue;
@@ -27,30 +36,54 @@ namespace asmdeps
                     Console.WriteLine(error);
                 }
             }
+
+            return 0;
         }
 
-        private static void DisplayDeps(string asmFile, List<AssemblyDependencyInfo> deps)
+        private static void DisplayDeps(
+            Assembly asm,
+            IEnumerable<AssemblyDependencyInfo> deps,
+            bool noColor)
         {
-            Console.WriteLine(asmFile);
+            var name = asm.GetName();
+            Console.WriteLine($"{name.Name} ({name.Version})");
             foreach (var dep in deps)
             {
                 var indent = new string(' ', dep.Level);
-                var message = (dep.Loaded) ? "" : "    (unable to load assembly)";
-                Console.WriteLine("{0}{0}└-{1}{2}", indent, dep.FullName, message);
+                var message = (dep.Loaded)
+                    ? ""
+                    : "    (unable to load assembly)";
+                Console.WriteLine(
+                    noColor
+                        ? $"{indent}{indent}└-{dep.FullName}{message}"
+                        : $"{indent}{indent}└-{dep.PrettyFullName}{message}"
+                );
             }
         }
 
+        private static AssemblyName ReadAssemblyName(string asmFile)
+        {
+            var asm = Assembly.ReflectionOnlyLoad(asmFile);
+            return asm.GetName();
+        }
+
         // Define other methods and classes here
-        static IEnumerable<string> ListFileDeps(string asmFile, List<AssemblyDependencyInfo> deps, string root, int listLevel = 0)
+        static IEnumerable<string> ListFileDeps(
+            Assembly asm,
+            List<AssemblyDependencyInfo> deps,
+            string root,
+            int listLevel = 0)
         {
             var errors = new List<string>();
-            var asm = Assembly.ReflectionOnlyLoadFrom(asmFile);
             var refs = asm.GetReferencedAssemblies();
             foreach (var r in refs)
             {
                 if (deps.Any(d => d.FullName == r.FullName))
+                {
                     continue;
-                var dep = new AssemblyDependencyInfo(r.FullName, true, listLevel);
+                }
+
+                var dep = new AssemblyDependencyInfo(r, true, listLevel);
                 deps.Add(dep);
                 try
                 {
@@ -62,10 +95,15 @@ namespace asmdeps
                     dep.Loaded = false;
                 }
             }
+
             return errors;
         }
 
-        static void ListAsmDeps(string asmName, List<AssemblyDependencyInfo> deps, string root, int listLevel = 0)
+        static void ListAsmDeps(
+            string asmName,
+            List<AssemblyDependencyInfo> deps,
+            string root,
+            int listLevel = 0)
         {
             Assembly asm;
             try
@@ -78,23 +116,27 @@ namespace asmdeps
                 var check = Path.Combine(root, name.Name + ".dll");
                 asm = Assembly.ReflectionOnlyLoadFrom(check);
             }
+
             var refs = asm.GetReferencedAssemblies();
             foreach (var r in refs)
             {
                 if (deps.Any(d => d.FullName == r.FullName))
                     continue;
-                var dep = new AssemblyDependencyInfo(r.FullName, true, listLevel);
+                var dep = new AssemblyDependencyInfo(r, true, listLevel);
                 deps.Add(dep);
                 try
                 {
                     var assemblyName = new AssemblyName(r.FullName);
-                    var asmToCheck = Path.Combine(root, assemblyName.Name + ".dll");
-                    if (File.Exists(asmToCheck))
+                    var asmToCheckFile = Path.Combine(root, assemblyName.Name + ".dll");
+                    if (File.Exists(asmToCheckFile))
                     {
+                        var asmToCheck = Assembly.ReflectionOnlyLoadFrom(asmToCheckFile);
                         ListFileDeps(asmToCheck, deps, root);
                     }
                     else
+                    {
                         ListAsmDeps(r.FullName, deps, root);
+                    }
                 }
                 catch (FileNotFoundException)
                 {
