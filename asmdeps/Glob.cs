@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace asmdeps
 {
@@ -15,7 +16,13 @@ namespace asmdeps
         /// <returns>all matching paths</returns>
         public static IEnumerable<string> Glob(this string glob)
         {
-            var head = Path.GetFullPath(PathHead(glob));
+            var head = PathHead(glob);
+
+            if (!new Regex("^[a-zA-Z]:$").IsMatch(head))
+            {
+                head = Path.GetFullPath(PathHead(glob));
+            }
+
             var tail = PathTail(glob);
             return Glob(head + DirSep, tail);
         }
@@ -81,7 +88,8 @@ namespace asmdeps
                     });
             }
 
-            return path.Split(new[] { DirSep }, StringSplitOptions.None)[0];
+            var result = path.Split(new[] { DirSep }, StringSplitOptions.None)[0];
+            return result;
         }
 
         /// <summary>
