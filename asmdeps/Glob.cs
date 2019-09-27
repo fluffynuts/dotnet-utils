@@ -15,7 +15,9 @@ namespace asmdeps
         /// <returns>all matching paths</returns>
         public static IEnumerable<string> Glob(this string glob)
         {
-            return Glob(PathHead(glob) + DirSep, PathTail(glob));
+            var head = Path.GetFullPath(PathHead(glob));
+            var tail = PathTail(glob);
+            return Glob(head + DirSep, tail);
         }
 
         /// <summary>

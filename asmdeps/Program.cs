@@ -4,7 +4,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using Pastel;
 
 namespace asmdeps
@@ -32,7 +31,8 @@ namespace asmdeps
 
             var asmPaths = finalArgs
                 .Select(p => p.Glob())
-                .SelectMany(o => o);
+                .SelectMany(o => o)
+                .ToArray();
 
             if (reverseLookup.Any())
             {
