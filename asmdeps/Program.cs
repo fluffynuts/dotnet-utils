@@ -279,7 +279,8 @@ namespace asmdeps
             bool showPaths)
         {
             var name = asm.GetName();
-            Console.WriteLine($"{(noColor ? name.FullName : name.PrettyFullName())} ({pathOnDisk})");
+            var pathPart = showPaths ? $"\n|  {pathOnDisk}".Grey() : "";
+            Console.WriteLine($"{(noColor ? name.FullName : name.PrettyFullName())}{pathPart}");
             DisplayDeps(deps, noColor, showPaths);
         }
 
