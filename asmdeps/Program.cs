@@ -10,16 +10,17 @@ namespace asmdeps
 {
     static class Program
     {
-        static int Main(string[] args)
+        static int Main(string[] arguments)
         {
-            if (args.Any(a => a == "-h" || a == "--help"))
+            var args = new List<string>(arguments);
+            if (HaveFlag(args, "-h", "--help"))
             {
                 ShowUsage();
                 return 0;
             }
 
-            var noColor = args.Any(a => a == "--no-color") || Console.IsOutputRedirected;
-            var otherArgs = args.Where(a => a != "--no-color").ToArray();
+            var showPaths = HaveFlag(args, "--show-paths", "-p");
+            var noColor = HaveFlag(args, "--no-color", "-n") || Console.IsOutputRedirected;
 
             GrokReversalsFrom(args, out var reverseLookup, out var finalArgs);
 
@@ -36,17 +37,37 @@ namespace asmdeps
 
             if (reverseLookup.Any())
             {
-                DumpReverseLookupFor(asmPaths, reverseLookup, noColor);
+                DumpReverseLookupFor(
+                    asmPaths, 
+                    reverseLookup, 
+                    noColor,
+                    showPaths);
             }
             else
             {
-                DumpAssemblyVersionInfoFor(asmPaths, noColor, otherArgs);
+                DumpAssemblyVersionInfoFor(
+                    asmPaths, 
+                    noColor, 
+                    showPaths, 
+                    args);
             }
 
 
             return 0;
         }
-        
+
+        private static bool HaveFlag(
+            List<string> args,
+            params string[] flags)
+        {
+            var found = args.Where(flags.Contains).ToArray();
+            foreach (var flag in found)
+            {
+                args.Remove(flag);
+            }
+            return found.Any();
+        }
+
 
         private static void GrokReversalsFrom(
             IEnumerable<string> args,
@@ -58,7 +79,7 @@ namespace asmdeps
             var inReverse = false;
             foreach (var arg in args)
             {
-                if (arg == "--reverse")
+                if (arg == "--reverse" || arg == "-r")
                 {
                     inReverse = true;
                     continue;
@@ -78,11 +99,12 @@ namespace asmdeps
         private static void ShowUsage()
         {
             var asmDeps = "asmdeps".BrightGreen();
-            Console.WriteLine($"Usage: {asmDeps} {{--no-color}} {{{"--reverse".BrightRed()}}} {{{"[assembly name]".BrightYellow()}}}... {{{"assembly file or glob".BrightCyan()}}}...");
+            Console.WriteLine($"Usage: {asmDeps} {{-n|--no-color}} {{-p|--show-paths}} {{{"-r|--reverse".BrightRed()}}} {{{"[assembly name]".BrightYellow()}}}... {{{"assembly file or glob".BrightCyan()}}}...");
             Console.WriteLine("  where:");
             Console.WriteLine($"    {"[assembly name]".BrightYellow()} is something like {"'System.Net.Http'".BrightYellow()}");
             Console.WriteLine($"    {"{assembly}".BrightCyan()} is the path to a dll, or a glob which results in at least one dll");
             Console.WriteLine($"    --no-color suppresses colorised output (default if command is piped)");
+            Console.WriteLine($"    --show-paths shows paths to assemblies as they are found");
             Console.WriteLine($"    --help shows this masterpiece of creative writing");
             Console.WriteLine("Examples:");
             Console.WriteLine($"  {asmDeps} {"MyAssembly.dll".BrightCyan()}");
@@ -93,10 +115,10 @@ namespace asmdeps
             Console.WriteLine($"    prints out dependencies for assemblies, stopping at reverse-matches & highlighting".Grey());
         }
 
-        private static void DumpReverseLookupFor(
-            IEnumerable<string> asmPaths,
+        private static void DumpReverseLookupFor(IEnumerable<string> asmPaths,
             IEnumerable<string> reverseLookup,
-            bool noColor)
+            bool noColor,
+            bool showPaths)
         {
             var final = new Dictionary<string, List<List<AssemblyDependencyInfo>>>();
 
@@ -110,7 +132,7 @@ namespace asmdeps
 
                 var root = Path.GetDirectoryName(asmFile);
                 var deps = new List<AssemblyDependencyInfo>();
-                var errors = ListFileDeps(asm, deps, root);
+                ListFileDeps(asm, deps, root);
                 foreach (var seek in reverseLookup)
                 {
                     if (deps.Any(d => d.Name.Equals(seek, StringComparison.OrdinalIgnoreCase)))
@@ -129,6 +151,7 @@ namespace asmdeps
                             asm.GetName(),
                             true,
                             0));
+                        deps[0].SetPathOnDisk(asmFile);
                         final[seek].Add(deps);
                     }
                 }
@@ -146,7 +169,7 @@ namespace asmdeps
                 {
                     Console.WriteLine($"Depends on {kvp.Key.BrightRed()}:");
                     var trimmed = TrimTree(tree, kvp.Key);
-                    DisplayDeps(trimmed, noColor, s => s.Contains(kvp.Key));
+                    DisplayDeps(trimmed, noColor, showPaths, s => s.Contains(kvp.Key));
                 }
             }
         }
@@ -182,7 +205,8 @@ namespace asmdeps
         private static void DumpAssemblyVersionInfoFor(
             IEnumerable<string> assemblyPaths,
             bool noColor,
-            string[] otherArgs)
+            bool showPaths,
+            IEnumerable<string> otherArgs)
         {
             foreach (var asmFile in assemblyPaths)
             {
@@ -196,7 +220,7 @@ namespace asmdeps
                 var deps = new List<AssemblyDependencyInfo>();
                 var root = Path.GetDirectoryName(asmFile);
                 var errors = ListFileDeps(asm, deps, root);
-                DisplayAssemblyAndDeps(asm, deps, noColor);
+                DisplayAssemblyAndDeps(asmFile, asm, deps, noColor, showPaths);
                 if (!errors.Any())
                 {
                     continue;
@@ -212,7 +236,7 @@ namespace asmdeps
 
         private static void LogErrorIfExplicitlySelected(
             string asmFile,
-            string[] otherArgs)
+            IEnumerable<string> otherArgs)
         {
             if (otherArgs.Any(o => o.ToLower() == asmFile.ToLower()))
             {
@@ -247,6 +271,18 @@ namespace asmdeps
         
         private static bool ShowDebug = Environment.GetEnvironmentVariable("DEBUG") != null;
 
+        private static void DisplayAssemblyAndDeps(
+            string pathOnDisk,
+            Assembly asm,
+            IEnumerable<AssemblyDependencyInfo> deps,
+            bool noColor,
+            bool showPaths)
+        {
+            var name = asm.GetName();
+            Console.WriteLine($"{(noColor ? name.FullName : name.PrettyFullName())} ({pathOnDisk})");
+            DisplayDeps(deps, noColor, showPaths);
+        }
+
         private static void Debug(params object[] args)
         {
             if (!ShowDebug)
@@ -259,31 +295,48 @@ namespace asmdeps
             );
         }
 
-        private static void DisplayAssemblyAndDeps(
-            Assembly asm,
-            IEnumerable<AssemblyDependencyInfo> deps,
-            bool noColor)
-        {
-            var name = asm.GetName();
-            Console.WriteLine(noColor ? name.FullName : name.PrettyFullName());
-            DisplayDeps(deps, noColor);
-        }
-
         private static void DisplayDeps(
             IEnumerable<AssemblyDependencyInfo> deps,
             bool noColor, 
+            bool showPaths,
             Func<string, bool> highlight = null)
         {
-            foreach (var dep in deps)
+            var resolved = deps.ToArray();
+            for (var i = 0; i < resolved.Length; i++)
             {
+                var dep = resolved[i];
                 var indent = new string(' ', dep.Level);
                 var message = (dep.Loaded)
                     ? ""
                     : "    (unable to load assembly)";
                 var prefix = $"{indent}{indent}{(noColor ? "-" :"└-")}";
+                var spaceDiff = noColor ? 1 : 2;
+                var spacing = new String(' ', prefix.Length - spaceDiff);
+
+                
+                if (NextIsDependency())
+                {
+                    spacing += "  |  ";
+                } 
+                else if (NextIsSameLevel())
+                {
+                    spacing += "|  ";
+                }
+                else
+                {
+                    spacing += "   ";
+                }
+
+                var pathPart = showPaths ? $"\n{spacing}  {dep.Path}" : "";
+                
+                if (!noColor)
+                {
+                    pathPart = pathPart.Grey();
+                }
+
                 var toWrite = noColor
-                        ? $"{prefix} {dep.FullName}{message}"
-                        : $"{prefix.Grey()} {dep.PrettyFullName}{message}";
+                        ? $"{prefix} {dep.FullName}{message}{pathPart}"
+                        : $"{prefix.Grey()} {dep.PrettyFullName}{message}{pathPart}";
                 if (!noColor)
                 {
                     var shouldHighlight = highlight?.Invoke(toWrite) ?? false;
@@ -294,6 +347,22 @@ namespace asmdeps
                 }
 
                 Console.WriteLine(toWrite);
+
+                bool NextIsDependency()
+                {
+                    return NextMatch(next => next.Level > dep.Level);
+                }
+
+                bool NextIsSameLevel()
+                {
+                    return NextMatch(next => next.Level == dep.Level);
+                }
+                
+                bool NextMatch(Func<AssemblyDependencyInfo,bool> logic)
+                {
+                    return i < (resolved.Length - 1) &&
+                        logic(resolved[i + 1]);
+                }
             }
         }
 
@@ -347,6 +416,15 @@ namespace asmdeps
                 asm = TryLoadPathForReflectionOnly(check);
             }
 
+            if (asm != null)
+            {
+                var localPath = new Uri(asm.Location).LocalPath;
+                foreach (var dep in deps.Where(d => d.Name == asm.GetName().Name))
+                {
+                    dep.SetPathOnDisk(localPath);
+                }
+            }
+
             var refs = asm?.GetReferencedAssemblies() ?? new AssemblyName[0];
             foreach (var r in refs)
             {
@@ -368,7 +446,7 @@ namespace asmdeps
                         {
                             continue;
                         }
-
+                        dep.SetPathOnDisk(asmToCheckFile);
                         ListFileDeps(asmToCheck, deps, root, listLevel + 1);
                     }
                     else

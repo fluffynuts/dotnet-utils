@@ -13,7 +13,8 @@ namespace asmdeps
         public string Name { get; set; }
         public string CultureName { get; set; }
         public string PublicKeyToken { get; set; }
-        
+        public string Path { get; private set; }
+
         public string PrettyFullName =>
             _fullName.PrettyFullName();
 
@@ -30,6 +31,14 @@ namespace asmdeps
             PublicKeyToken = fullName.GetPublicKeyToken().ToHex();
             Loaded = loaded;
             Level = level;
+        }
+
+        public void SetPathOnDisk(string path)
+        {
+            if (string.IsNullOrWhiteSpace(Path))
+            {
+                Path = path;
+            }
         }
     }
 }
