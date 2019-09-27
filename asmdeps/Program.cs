@@ -391,7 +391,7 @@ namespace asmdeps
                 }
                 catch (FileNotFoundException ex)
                 {
-                    errors.Add($"Unable to find dependency: {ex.FileName}");
+                    errors.Add($"Unable to find dependency: {r.FullName} {ex.FileName}");
                     dep.Loaded = false;
                 }
             }
