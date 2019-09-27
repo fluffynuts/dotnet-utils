@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Pastel;
 
 namespace asmdeps
@@ -12,29 +13,16 @@ namespace asmdeps
     {
         static int Main(string[] args)
         {
+            if (args.Any(a => a == "-h" || a == "--help"))
+            {
+                ShowUsage();
+                return 0;
+            }
+
             var noColor = args.Any(a => a == "--no-color") || Console.IsOutputRedirected;
             var otherArgs = args.Where(a => a != "--no-color").ToArray();
 
-            var reverseLookup = new List<string>();
-            var finalArgs = new List<string>();
-            var inReverse = false;
-            foreach (var arg in args)
-            {
-                if (arg == "--reverse")
-                {
-                    inReverse = true;
-                    continue;
-                }
-
-                if (inReverse)
-                {
-                    reverseLookup.Add(arg);
-                    inReverse = false;
-                    continue;
-                }
-
-                finalArgs.Add(arg);
-            }
+            GrokReversalsFrom(args, out var reverseLookup, out var finalArgs);
 
             if (!finalArgs.Any())
             {
@@ -57,6 +45,52 @@ namespace asmdeps
 
 
             return 0;
+        }
+        
+
+        private static void GrokReversalsFrom(
+            IEnumerable<string> args,
+            out List<string> reverseLookup,
+            out List<string> remainingArgs)
+        {
+            reverseLookup = new List<string>();
+            remainingArgs = new List<string>();
+            var inReverse = false;
+            foreach (var arg in args)
+            {
+                if (arg == "--reverse")
+                {
+                    inReverse = true;
+                    continue;
+                }
+
+                if (inReverse)
+                {
+                    reverseLookup.Add(arg);
+                    inReverse = false;
+                    continue;
+                }
+
+                remainingArgs.Add(arg);
+            }
+        }
+
+        private static void ShowUsage()
+        {
+            var asmDeps = "asmdeps".BrightGreen();
+            Console.WriteLine($"Usage: {asmDeps} {{--no-color}} {{{"--reverse".BrightRed()}}} {{{"[assembly name]".BrightYellow()}}}... {{{"assembly file or glob".BrightCyan()}}}...");
+            Console.WriteLine("  where:");
+            Console.WriteLine($"    {"[assembly name]".BrightYellow()} is something like {"'System.Net.Http'".BrightYellow()}");
+            Console.WriteLine($"    {"{assembly}".BrightCyan()} is the path to a dll, or a glob which results in at least one dll");
+            Console.WriteLine($"    --no-color suppresses colorised output (default if command is piped)");
+            Console.WriteLine($"    --help shows this masterpiece of creative writing");
+            Console.WriteLine("Examples:");
+            Console.WriteLine($"  {asmDeps} {"MyAssembly.dll".BrightCyan()}");
+            Console.WriteLine($"    prints out dependencies for MyAssembly.dll".Grey());
+            Console.WriteLine($"  {asmDeps} {"C:\\MyProject\\bin\\Debug\\*".BrightCyan()}");
+            Console.WriteLine($"    prints out dependencies for all assemblies in that folder".Grey());
+            Console.WriteLine($"  {asmDeps} {"--reverse".BrightRed()} {"Some.Assembly".BrightYellow()} {"--reverse".BrightRed()} {"Some.Other.Assembly".BrightYellow()} {"*.dll".BrightCyan()}");
+            Console.WriteLine($"    prints out dependencies for assemblies, stopping at reverse-matches & highlighting".Grey());
         }
 
         private static void DumpReverseLookupFor(
