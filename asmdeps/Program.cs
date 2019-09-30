@@ -31,7 +31,7 @@ namespace asmdeps
             }
 
             var asmPaths = finalArgs
-                .Select(p => p.Glob())
+                .Select(p =>  p.Glob())
                 .SelectMany(o => o)
                 .ToArray();
 
