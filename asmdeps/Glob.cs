@@ -28,12 +28,24 @@ namespace asmdeps
                 glob = Unrelatively(glob);
             }
 
+            if (glob.StartsWith("*"))
+            {
+                glob = Path.Combine(Environment.CurrentDirectory, glob);
+            }
+
             var head = PathHead(glob);
 
             if (!new Regex("^[a-zA-Z]:$").IsMatch(head))
             {
-                head = Path.GetFullPath(PathHead(glob));
+                try
+                {
+                    head = Path.GetFullPath(PathHead(glob));
+                }
+                catch
+                {
+                }
             }
+            
 
             var tail = PathTail(glob);
             return Glob(head + DirSep, tail);
