@@ -2,7 +2,7 @@ using System.Drawing;
 using System.Linq;
 using Pastel;
 
-namespace asmdeps
+namespace shared
 {
     public static class StringExtensions
     {

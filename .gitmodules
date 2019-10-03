@@ -1,3 +1,6 @@
 [submodule "Pastel"]
 	path = Pastel
 	url = https://github.com/silkfire/Pastel
+[submodule "PeanutButter"]
+	path = PeanutButter
+	url = https://github.com/fluffynuts/PeanutButter

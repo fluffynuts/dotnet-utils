@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Pastel;
+using shared;
 
 namespace asmdeps
 {
@@ -13,24 +14,28 @@ namespace asmdeps
         static int Main(string[] arguments)
         {
             var args = new List<string>(arguments);
-            if (HaveFlag(args, "-h", "--help"))
+            if (args.ReadFlag("-h", "--help"))
             {
                 ShowUsage();
                 return 0;
             }
 
-            var showPaths = HaveFlag(args, "--show-paths", "-p");
-            var noColor = HaveFlag(args, "--no-color", "-n") || Console.IsOutputRedirected;
+            var showPaths = args.ReadFlag("--show-paths", "-p");
+            var noColor = args.ReadFlag("--no-color", "-n") || Console.IsOutputRedirected;
 
-            GrokReversalsFrom(args, out var reverseLookup, out var finalArgs);
+            var reverseLookup = args.ReadParameter(
+                ParameterOptions.Conservative, 
+                "--reverse", 
+                "-r"
+            );
 
-            if (!finalArgs.Any())
+            if (!args.Any())
             {
                 Console.Error.WriteLine("No assemblies provided to inspect. Exiting.");
                 return 2;
             }
 
-            var asmPaths = finalArgs
+            var asmPaths = args
                 .Select(p =>  p.Glob())
                 .SelectMany(o => o)
                 .ToArray();
@@ -54,46 +59,6 @@ namespace asmdeps
 
 
             return 0;
-        }
-
-        private static bool HaveFlag(
-            List<string> args,
-            params string[] flags)
-        {
-            var found = args.Where(flags.Contains).ToArray();
-            foreach (var flag in found)
-            {
-                args.Remove(flag);
-            }
-            return found.Any();
-        }
-
-
-        private static void GrokReversalsFrom(
-            IEnumerable<string> args,
-            out List<string> reverseLookup,
-            out List<string> remainingArgs)
-        {
-            reverseLookup = new List<string>();
-            remainingArgs = new List<string>();
-            var inReverse = false;
-            foreach (var arg in args)
-            {
-                if (arg == "--reverse" || arg == "-r")
-                {
-                    inReverse = true;
-                    continue;
-                }
-
-                if (inReverse)
-                {
-                    reverseLookup.Add(arg);
-                    inReverse = false;
-                    continue;
-                }
-
-                remainingArgs.Add(arg);
-            }
         }
 
         private static void ShowUsage()

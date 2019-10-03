@@ -52,3 +52,6 @@ but I guess it would work for netcore stuff?
 
 ### code is ew
 probably -- but it's functional
+
+### I want to build, but zomg submodules
+This is done on purpose to make built artifacts single-binary. Deal.
