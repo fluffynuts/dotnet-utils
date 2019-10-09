@@ -7,11 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Pastel\src\ConsoleExtensions.cs">
+      <Link>ConsoleExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\PeanutButter\source\Utils\PeanutButter.XmlUtils\XElementExtensions.cs">
       <Link>XElementExtensions.cs</Link>
     </Compile>
     <Compile Include="..\shared\Args.cs">
       <Link>Args.cs</Link>
+    </Compile>
+    <Compile Include="..\shared\StringExtensions.cs">
+      <Link>StringExtensions.cs</Link>
     </Compile>
   </ItemGroup>
   <Target Name="OnBuildCompletion" AfterTargets="CoreBuild">

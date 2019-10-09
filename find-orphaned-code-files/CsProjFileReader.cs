@@ -7,6 +7,30 @@ using PeanutButter.XmlUtils;
 
 namespace find_orphaned_code_files
 {
+    public class UnsupportedProjectException : NotSupportedException
+    {
+        public bool IsValidModernCsProj { get; }
+
+        public UnsupportedProjectException(
+            string fileName,
+            bool isValidModernCsProj) : this(fileName, isValidModernCsProj, null)
+        {
+        }
+
+        public UnsupportedProjectException(
+            string fileName,
+            bool isValidModernCsProj,
+            Exception innerException) : base(GenerateMessageFor(fileName), innerException)
+        {
+            IsValidModernCsProj = isValidModernCsProj;
+        }
+
+        private static string GenerateMessageFor(string fileName)
+        {
+            return $"{fileName} is not supported by this tool (must be an old-school .csproj)";
+        }
+    }
+
     public class CsProjFileReader
     {
         public string[] CompiledFiles =>
@@ -48,26 +72,27 @@ namespace find_orphaned_code_files
             }
             catch (Exception ex)
             {
-                ThrowNotSupported(fileName, ex);
+                throw new UnsupportedProjectException(
+                    fileName, 
+                    false,
+                    ex);
             }
 
             _doc.ScrubNamespaces();
             var projectNode = _doc.XPathSelectElement("/Project", _navigator);
-            if (projectNode.Attribute("ToolsVersion") == null)
+            if (projectNode == null)
             {
-                ThrowNotSupported(fileName);
-            }
-        }
-
-        private void ThrowNotSupported(string fileName, Exception ex = null)
-        {
-            var message = $"{fileName} is not supported by this tool (must be an old-school .csproj)";
-            if (ex != null)
-            {
-                message += $"\nMore info: {ex.Message}";
+                throw new UnsupportedProjectException(fileName, false);
             }
 
-            throw new NotSupportedException(message);
+            if (projectNode.Attribute("ToolsVersion") != null)
+            {
+                return;
+            }
+
+            throw new UnsupportedProjectException(
+                fileName, 
+                projectNode.Attribute("Sdk") != null);
         }
 
         private string[] FindIncludedFilesOfType(string type)
