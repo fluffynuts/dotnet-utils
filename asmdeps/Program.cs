@@ -275,6 +275,11 @@ namespace asmdeps
                 var message = (dep.Loaded)
                     ? ""
                     : "    (unable to load assembly)";
+                if (!dep.Loaded && !noColor)
+                {
+                    message = message.BrightMagenta();
+                }
+
                 var prefix = $"{indent}{indent}{(noColor ? "-" :"└-")}";
                 var spaceDiff = noColor ? 1 : 2;
                 var spacing = new String(' ', prefix.Length - spaceDiff);
