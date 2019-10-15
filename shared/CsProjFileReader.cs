@@ -1,8 +1,10 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using PeanutButter.Utils;
 using PeanutButter.XmlUtils;
 
 namespace find_orphaned_code_files
@@ -35,7 +37,7 @@ namespace find_orphaned_code_files
     {
         public string[] CompiledFiles =>
             _includedFiles ?? (_includedFiles = FindIncludedFilesOfType("Compile"));
-        
+
         public string[] ContentFiles =>
             _contentFiles ?? (_contentFiles = FindIncludedFilesOfType("Content"));
 
@@ -44,6 +46,7 @@ namespace find_orphaned_code_files
         private XNamespace _xmlNamespace;
         private XPathNavigator _navigator;
         private string[] _contentFiles;
+        private string _fileName;
 
         public CsProjFileReader(
             string fileName
@@ -61,6 +64,7 @@ namespace find_orphaned_code_files
         {
             try
             {
+                _fileName = fileName;
                 _doc = XDocument.Load(fileName);
                 if (_doc.Root == null)
                 {
@@ -73,7 +77,7 @@ namespace find_orphaned_code_files
             catch (Exception ex)
             {
                 throw new UnsupportedProjectException(
-                    fileName, 
+                    fileName,
                     false,
                     ex);
             }
@@ -91,16 +95,51 @@ namespace find_orphaned_code_files
             }
 
             throw new UnsupportedProjectException(
-                fileName, 
+                fileName,
                 projectNode.Attribute("Sdk") != null);
         }
 
         private string[] FindIncludedFilesOfType(string type)
         {
-            return _doc.XPathSelectElements($"/Project/ItemGroup/{type}")
+            return FindFileNodesOfType(type)
                 .Select(n => n.Attribute("Include")?.Value)
                 .Where(s => !string.IsNullOrWhiteSpace(s))
                 .ToArray();
+        }
+
+        private XElement[] FindFileNodesOfType(string type)
+        {
+            return _doc
+                .XPathSelectElements($"/Project/ItemGroup/{type}")
+                .ToArray();
+        }
+
+        public void RemoveFilesOfType(
+            string type,
+            Func<string, bool> selector,
+            Func<string, bool> reporter)
+        {
+            var nodes = FindFileNodesOfType(type)
+                .Where(el => el.Attribute("Include") != null)
+                .Where(el => selector(el.Attribute("Include").Value));
+            nodes.ForEach(node =>
+            {
+                if (!reporter(node.Attribute("Include").Value))
+                {
+                    return;
+                }
+                node.Remove();
+            });
+        }
+
+        public void Persist()
+        {
+            using (var outStream = File.Open(_fileName, FileMode.Truncate, FileAccess.Write))
+            {
+                _doc.WriteTo(
+                    XmlWriter.Create(outStream)
+                );
+            }
         }
     }
 }

@@ -3,15 +3,12 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net452</TargetFramework>
-    <RootNamespace>find_orphaned_code_files</RootNamespace>
+    <RootNamespace>remove_project_files</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Pastel\src\ConsoleExtensions.cs">
-      <Link>ConsoleExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.XmlUtils\XElementExtensions.cs">
-      <Link>XElementExtensions.cs</Link>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\ExtensionsForIEnumerables.cs">
+      <Link>ExtensionsForIEnumerables.cs</Link>
     </Compile>
     <Compile Include="..\shared\Args.cs">
       <Link>Args.cs</Link>
@@ -19,13 +16,20 @@
     <Compile Include="..\shared\CsProjFileReader.cs">
       <Link>CsProjFileReader.cs</Link>
     </Compile>
+    <Compile Include="..\shared\Status.cs">
+      <Link>Status.cs</Link>
+    </Compile>
     <Compile Include="..\shared\StringExtensions.cs">
       <Link>StringExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\ExtensionsForIEnumerables.cs">
-      <Link>ExtensionsForIEnumerables.cs</Link>
+    <Compile Include="..\Pastel\src\ConsoleExtensions.cs">
+      <Link>ConsoleExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.XmlUtils\XElementExtensions.cs">
+      <Link>XElementExtensions.cs</Link>
     </Compile>
   </ItemGroup>
+  
   <Target Name="OnBuildCompletion" AfterTargets="CoreBuild">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\bin" />
   </Target>

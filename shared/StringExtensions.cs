@@ -8,6 +8,7 @@ namespace shared
 {
     public static class StringExtensions
     {
+        public static bool DisableColor { get; set; } = false;
         private static readonly Color _brightRed = Color.FromArgb(255, 255, 128, 128);
         private static readonly Color _brightGreen = Color.FromArgb(255, 128, 255, 0);
         private static readonly Color _brightBlue = Color.FromArgb(255, 128, 128, 255);
@@ -19,40 +20,55 @@ namespace shared
 
         public static string BrightRed(this string str)
         {
-            return str.Pastel(_brightRed);
+            return DisableColor
+                ? str
+                : str.Pastel(_brightRed);
         }
 
         public static string BrightGreen(this string str)
         {
-            return str.Pastel(_brightGreen);
+            return DisableColor
+                ? str
+                : str.Pastel(_brightGreen);
         }
 
         public static string BrightCyan(this string str)
         {
-            return str.Pastel(_brightCyan);
+            return DisableColor
+                ? str
+                : str.Pastel(_brightCyan);
         }
 
         public static string BrightYellow(this string str)
         {
-            return str.Pastel(_brightYellow);
+            return DisableColor
+                ? str
+                : str.Pastel(_brightYellow);
         }
 
         public static string BrightMagenta(this string str)
         {
-            return str.Pastel(_brightMagenta);
+            return DisableColor
+                ? str
+                : str.Pastel(_brightMagenta);
         }
 
         public static string BrightPink(this string str)
         {
-            return str.Pastel(_brightPink);
+            return DisableColor
+                ? str
+                : str.Pastel(_brightPink);
         }
 
         public static string BrightBlue(this string str)
         {
-            return str.Pastel(_brightBlue);
+            return DisableColor
+                ? str
+                : str.Pastel(_brightBlue);
         }
 
         private static int _rainbow;
+
         private static readonly Dictionary<int, Func<string, string>> RainbowLookup
             = new Dictionary<int, Func<string, string>>()
             {
@@ -62,7 +78,8 @@ namespace shared
                 [3] = BrightYellow,
                 [4] = BrightMagenta,
                 [5] = BrightBlue
-             };
+            };
+
         private static readonly int RainbowOptions = RainbowLookup.Keys.Count;
 
         public static string Rainbow(this string str)
@@ -73,7 +90,9 @@ namespace shared
 
         public static string Grey(this string str)
         {
-            return str.Pastel(_grey);
+            return DisableColor
+                ? str
+                : str.Pastel(_grey);
         }
 
         public static string ToHex(this byte[] bytes)
