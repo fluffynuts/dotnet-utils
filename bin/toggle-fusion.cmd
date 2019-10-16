@@ -49,7 +49,7 @@ if "%MODE%" == "enable" (
     if "!LOGFOLDER!" == "" (
         set /p SELECTED_LOG_FOLDER="Where should logs be kept? Enter a full path or just press enter to accept the default (!DEFAULT_LOG_FOLDER!) "
         if "!SELECTED_LOG_FOLDER!" == "" (
-            set LOGFOLDER=+%DEFAULT_LOG_FOLDER%
+            set LOGFOLDER=!DEFAULT_LOG_FOLDER!
         ) else (
             set LOGFOLDER=%SELECTED_LOG_FOLDER%
         )
