@@ -22,6 +22,21 @@ namespace remove_project_files
 
             StringExtensions.DisableColor = args.ReadFlag("-n", "--no-color") || Console.IsOutputRedirected;
             var pretend = args.ReadFlag("-p", "--pretend");
+            var force = args.ReadFlag("-f", "--force");
+            if (!pretend && !force)
+            {
+                Console.WriteLine("WARNING: this utility is experimental and may eat your project");
+                Console.WriteLine("If you're REALLY sure you'd like to run without --pretend, please (for now)");
+                Console.WriteLine(" add the --force flag");
+                Console.WriteLine("Also: ALWAYS back up your files before allowing automated manipulation!");
+                return 1;
+            }
+
+            if (force)
+            {
+                pretend = false;
+            }
+
             var verbose = args.ReadFlag("-v", "--verbose");
             var projectsOrFolders = args.ReadParameter(
                 ParameterOptions.Conservative,
@@ -191,6 +206,7 @@ namespace remove_project_files
             var exactMatches = FindExactMatchesIn(args);
             var partialMatches = FindPartialMatchesIn(args);
             var types = new[] { "Content", "Compile", "None" };
+            var anythingRemoved = false;
             types.ForEach(type =>
             {
                 reader.RemoveFilesOfType(
@@ -200,6 +216,7 @@ namespace remove_project_files
                         StartInspect(verbose, $" INSPECT ({type}) file: {fileName}");
                         var result = IsMatched(fileName, partialMatches, exactMatches);
                         EndInspect(verbose, result);
+                        anythingRemoved = anythingRemoved || result;
                         return result;
                     },
                     fileName =>
@@ -214,6 +231,12 @@ namespace remove_project_files
                         return !pretend;
                     });
             });
+            
+            if (anythingRemoved)
+            {
+                reader.Persist();
+            }
+
             Status.Clear();
         }
 
