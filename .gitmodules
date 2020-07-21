@@ -4,6 +4,3 @@
 [submodule "PeanutButter"]
 	path = PeanutButter
 	url = https://github.com/fluffynuts/PeanutButter
-[submodule "gulp-tasks"]
-	path = gulp-tasks
-	url = https://github.com/fluffynuts/gulp-tasks
