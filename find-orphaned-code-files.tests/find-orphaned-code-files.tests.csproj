@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>net50</TargetFramework>
 
     <IsPackable>false</IsPackable>
 
@@ -9,12 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NExpect" Version="1.0.156" />
-    <PackageReference Include="nunit" Version="3.11.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.11.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
-    <PackageReference Include="PeanutButter.RandomGenerators" Version="1.2.304" />
-    <PackageReference Include="PeanutButter.Utils" Version="1.2.304" />
+    <PackageReference Include="NExpect" Version="1.0.184" />
+    <PackageReference Include="nunit" Version="3.12.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
+    <PackageReference Include="PeanutButter.RandomGenerators" Version="1.2.380" />
+    <PackageReference Include="PeanutButter.Utils" Version="1.2.380" />
   </ItemGroup>
 
   <ItemGroup>

@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using Pastel;
 using shared;
 
@@ -24,8 +25,8 @@ namespace asmdeps
             var noColor = args.ReadFlag("--no-color", "-n") || Console.IsOutputRedirected;
 
             var reverseLookup = args.ReadParameter(
-                ParameterOptions.Conservative, 
-                "--reverse", 
+                ParameterOptions.Conservative,
+                "--reverse",
                 "-r"
             );
 
@@ -36,24 +37,24 @@ namespace asmdeps
             }
 
             var asmPaths = args
-                .Select(p =>  p.Glob())
+                .Select(p => p.Glob())
                 .SelectMany(o => o)
                 .ToArray();
 
             if (reverseLookup.Any())
             {
                 DumpReverseLookupFor(
-                    asmPaths, 
-                    reverseLookup, 
+                    asmPaths,
+                    reverseLookup,
                     noColor,
                     showPaths);
             }
             else
             {
                 DumpAssemblyVersionInfoFor(
-                    asmPaths, 
-                    noColor, 
-                    showPaths, 
+                    asmPaths,
+                    noColor,
+                    showPaths,
                     args);
             }
 
@@ -64,10 +65,13 @@ namespace asmdeps
         private static void ShowUsage()
         {
             var asmDeps = "asmdeps".BrightGreen();
-            Console.WriteLine($"Usage: {asmDeps} {{-n|--no-color}} {{-p|--show-paths}} {{{"-r|--reverse".BrightRed()}}} {{{"[assembly name]".BrightYellow()}}}... {{{"assembly file or glob".BrightCyan()}}}...");
+            Console.WriteLine(
+                $"Usage: {asmDeps} {{-n|--no-color}} {{-p|--show-paths}} {{{"-r|--reverse".BrightRed()}}} {{{"[assembly name]".BrightYellow()}}}... {{{"assembly file or glob".BrightCyan()}}}...");
             Console.WriteLine("  where:");
-            Console.WriteLine($"    {"[assembly name]".BrightYellow()} is something like {"'System.Net.Http'".BrightYellow()}");
-            Console.WriteLine($"    {"{assembly}".BrightCyan()} is the path to a dll, or a glob which results in at least one dll");
+            Console.WriteLine(
+                $"    {"[assembly name]".BrightYellow()} is something like {"'System.Net.Http'".BrightYellow()}");
+            Console.WriteLine(
+                $"    {"{assembly}".BrightCyan()} is the path to a dll, or a glob which results in at least one dll");
             Console.WriteLine($"    --no-color suppresses colorised output (default if command is piped)");
             Console.WriteLine($"    --show-paths shows paths to assemblies as they are found");
             Console.WriteLine($"    --help shows this masterpiece of creative writing");
@@ -76,8 +80,10 @@ namespace asmdeps
             Console.WriteLine($"    prints out dependencies for MyAssembly.dll".Grey());
             Console.WriteLine($"  {asmDeps} {"C:\\MyProject\\bin\\Debug\\*".BrightCyan()}");
             Console.WriteLine($"    prints out dependencies for all assemblies in that folder".Grey());
-            Console.WriteLine($"  {asmDeps} {"--reverse".BrightRed()} {"Some.Assembly".BrightYellow()} {"--reverse".BrightRed()} {"Some.Other.Assembly".BrightYellow()} {"*.dll".BrightCyan()}");
-            Console.WriteLine($"    prints out dependencies for assemblies, stopping at reverse-matches & highlighting".Grey());
+            Console.WriteLine(
+                $"  {asmDeps} {"--reverse".BrightRed()} {"Some.Assembly".BrightYellow()} {"--reverse".BrightRed()} {"Some.Other.Assembly".BrightYellow()} {"*.dll".BrightCyan()}");
+            Console.WriteLine($"    prints out dependencies for assemblies, stopping at reverse-matches & highlighting"
+                .Grey());
         }
 
         private static void DumpReverseLookupFor(IEnumerable<string> asmPaths,
@@ -89,7 +95,7 @@ namespace asmdeps
 
             foreach (var asmFile in asmPaths)
             {
-                var asm = TryLoadPathForReflectionOnly(asmFile);
+                var asm = TryLoadPath(asmFile);
                 if (asm == null)
                 {
                     continue;
@@ -134,7 +140,8 @@ namespace asmdeps
                 {
                     Console.WriteLine($"Depends on {kvp.Key.BrightRed()}:");
                     var trimmed = TrimTree(tree, kvp.Key);
-                    DisplayDeps(trimmed, noColor, showPaths, s => s.Contains(kvp.Key));
+                    // TODO: factor in rebinds for reverse lookup?
+                    DisplayDeps(trimmed, new AssemblyRebind[0], noColor, showPaths, s => s.Contains(kvp.Key));
                 }
             }
         }
@@ -163,6 +170,7 @@ namespace asmdeps
                     inHit = false;
                 }
             }
+
             result.AddRange(tree.Where(n => n.Level == 0));
             return result.Reversed();
         }
@@ -175,17 +183,19 @@ namespace asmdeps
         {
             foreach (var asmFile in assemblyPaths)
             {
-                var asm = TryLoadPathForReflectionOnly(asmFile);
+                var asm = TryLoadPath(asmFile);
                 if (asm == null)
                 {
                     LogErrorIfExplicitlySelected(asmFile, otherArgs);
                     continue;
                 }
 
+                var rebinds = ListRebindsFor(asmFile);
+
                 var deps = new List<AssemblyDependencyInfo>();
                 var root = Path.GetDirectoryName(asmFile);
                 var errors = ListFileDeps(asm, deps, root);
-                DisplayAssemblyAndDeps(asmFile, asm, deps, noColor, showPaths);
+                DisplayAssemblyAndDeps(asmFile, asm, deps, rebinds, noColor, showPaths);
                 if (!errors.Any())
                 {
                     continue;
@@ -210,7 +220,8 @@ namespace asmdeps
         }
 
         private static Dictionary<string, Assembly> LoadedAssemblies = new Dictionary<string, Assembly>();
-        private static Assembly TryLoadPathForReflectionOnly(string asmFile)
+
+        private static Assembly TryLoadPath(string asmFile)
         {
             if (LoadedAssemblies.TryGetValue(asmFile, out var result))
             {
@@ -220,9 +231,15 @@ namespace asmdeps
             try
             {
                 Debug($"Attempt load from: {asmFile}");
+#if NET5_0
                 var toAdd = File.Exists(asmFile)
                     ? Assembly.ReflectionOnlyLoadFrom(asmFile)
                     : Assembly.ReflectionOnlyLoad(asmFile);
+#else
+                var toAdd = File.Exists(asmFile)
+                    ? Assembly.ReflectionOnlyLoadFrom(asmFile)
+                    : Assembly.ReflectionOnlyLoad(asmFile);
+#endif
                 LoadedAssemblies[asmFile] = toAdd;
                 return toAdd;
             }
@@ -233,20 +250,65 @@ namespace asmdeps
                 return null;
             }
         }
-        
+
         private static bool ShowDebug = Environment.GetEnvironmentVariable("DEBUG") != null;
 
         private static void DisplayAssemblyAndDeps(
             string pathOnDisk,
             Assembly asm,
             IEnumerable<AssemblyDependencyInfo> deps,
+            AssemblyRebind[] rebinds,
             bool noColor,
             bool showPaths)
         {
             var name = asm.GetName();
-            var pathPart = showPaths ? $"\n|  {pathOnDisk}".Grey() : "";
+            var pathPart = showPaths
+                ? $"\n|  {pathOnDisk}".Grey()
+                : "";
             Console.WriteLine($"{(noColor ? name.FullName : name.PrettyFullName())}{pathPart}");
-            DisplayDeps(deps, noColor, showPaths);
+            DisplayDeps(deps, rebinds, noColor, showPaths);
+        }
+
+        private static AssemblyRebind[] ListRebindsFor(string assemblyPath)
+        {
+            var configFile = $"{assemblyPath}.config";
+            if (!File.Exists(configFile))
+            {
+                return new AssemblyRebind[0];
+            }
+
+            var doc = XDocument.Load(configFile);
+            var rebindsRoots = doc.Descendants()
+                .Where(n => n.Name.LocalName == "assemblyBinding")
+                .ToArray();
+            var result = new List<AssemblyRebind>();
+            foreach (var root in rebindsRoots)
+            {
+                var dependentAssemblies = root.Descendants()
+                    .Where(n => n.Name.LocalName == "dependentAssembly")
+                    .ToArray();
+                foreach (var dep in dependentAssemblies)
+                {
+                    var identity = dep.Descendants().FirstOrDefault(n => n.Name.LocalName == "assemblyIdentity");
+                    var bindingRedirect = dep.Descendants().FirstOrDefault(n => n.Name.LocalName == "bindingRedirect");
+
+                    if (identity is null || bindingRedirect is null)
+                    {
+                        continue;
+                    }
+
+                    var rebind = new AssemblyRebind(
+                        identity.Attribute("name")?.Value,
+                        identity.Attribute("publicKeyToken")?.Value,
+                        identity.Attribute("culture")?.Value,
+                        bindingRedirect.Attribute("oldVersion")?.Value,
+                        bindingRedirect.Attribute("newVersion")?.Value
+                    );
+                    result.Add(rebind);
+                }
+            }
+
+            return result.ToArray();
         }
 
         private static void Debug(params object[] args)
@@ -263,7 +325,8 @@ namespace asmdeps
 
         private static void DisplayDeps(
             IEnumerable<AssemblyDependencyInfo> deps,
-            bool noColor, 
+            AssemblyRebind[] assemblyRebinds,
+            bool noColor,
             bool showPaths,
             Func<string, bool> highlight = null)
         {
@@ -272,23 +335,31 @@ namespace asmdeps
             {
                 var dep = resolved[i];
                 var indent = new string(' ', dep.Level);
-                var message = (dep.Loaded)
-                    ? ""
-                    : "    (unable to load assembly)";
-                if (!dep.Loaded && !noColor)
+                var isMismatched = dep.IsMismatched(assemblyRebinds);
+                var isRebound = !(dep.LoadedAssembly is null) && assemblyRebinds.Any(r => r.AssemblyName == dep.Name);
+                var message = dep.Loaded
+                    ? (isMismatched
+                        ? $"* local version mismatch: {dep.LoadedAssembly.FullName}"
+                        : "")
+                    : "* unable to load assembly";
+                var haveError = !dep.Loaded || isMismatched;
+                var successfullyRebound = isRebound && !isMismatched;
+                if (haveError && !noColor)
                 {
                     message = message.BrightMagenta();
                 }
 
-                var prefix = $"{indent}{indent}{(noColor ? "-" :"└-")}";
-                var spaceDiff = noColor ? 1 : 2;
+                var prefix = $"{indent}{indent}{(noColor ? "-" : "└-")}";
+                var spaceDiff = noColor
+                    ? 1
+                    : 2;
                 var spacing = new String(' ', prefix.Length - spaceDiff);
 
-                
+
                 if (NextIsDependency())
                 {
                     spacing += "  |  ";
-                } 
+                }
                 else if (NextIsSameLevel())
                 {
                     spacing += "|  ";
@@ -298,16 +369,30 @@ namespace asmdeps
                     spacing += "   ";
                 }
 
-                var pathPart = showPaths ? $"\n{spacing}  {dep.Path}" : "";
-                
+                var pathPart = showPaths
+                    ? $"\n{spacing}  {dep.Path}"
+                    : "";
+                message = string.IsNullOrWhiteSpace(message)
+                    ? message
+                    : $"\n{spacing} {message}";
+
                 if (!noColor)
                 {
                     pathPart = pathPart.Grey();
                 }
 
+                var rebindMessage = CreateRebindMessage(
+                    noColor,
+                    isRebound,
+                    isMismatched,
+                    successfullyRebound,
+                    dep,
+                    spacing
+                );
+
                 var toWrite = noColor
-                        ? $"{prefix} {dep.FullName}{message}{pathPart}"
-                        : $"{prefix.Grey()} {dep.PrettyFullName}{message}{pathPart}";
+                    ? $"{prefix} {dep.FullName}{rebindMessage}{message}{pathPart}"
+                    : $"{prefix.Grey()} {dep.PrettyFullName}{rebindMessage}{message}{pathPart}";
                 if (!noColor)
                 {
                     var shouldHighlight = highlight?.Invoke(toWrite) ?? false;
@@ -328,12 +413,54 @@ namespace asmdeps
                 {
                     return NextMatch(next => next.Level == dep.Level);
                 }
-                
-                bool NextMatch(Func<AssemblyDependencyInfo,bool> logic)
+
+                bool NextMatch(Func<AssemblyDependencyInfo, bool> logic)
                 {
                     return i < (resolved.Length - 1) &&
                         logic(resolved[i + 1]);
                 }
+            }
+        }
+
+        private static string CreateRebindMessage(
+            bool noColor,
+            bool isRebound,
+            bool isMismatched,
+            bool successfullyRebound,
+            AssemblyDependencyInfo dep,
+            string spacing)
+        {
+            var successfulRebindMessage = successfullyRebound
+                ? $"* rebound to:   {dep.LoadedAssembly.Version}"
+                : "";
+            if (!string.IsNullOrWhiteSpace(successfulRebindMessage))
+            {
+                return IndentAndColor(successfulRebindMessage, s => s.BrightBlue());
+            }
+
+            if (isMismatched)
+            {
+                var invalidRebindMessage = isRebound
+                    ? "* invalid assembly rebind"
+                    : "* assembly rebind suggested";
+                return IndentAndColor(invalidRebindMessage, s => s.BrightMagenta());
+            }
+
+            return "";
+
+            string IndentAndColor(string str, Func<string, string> colorizer)
+            {
+                if (string.IsNullOrWhiteSpace(str))
+                {
+                    return str;
+                }
+
+                if (!noColor)
+                {
+                    str = colorizer(str);
+                }
+
+                return $"\n{spacing} {str}";
             }
         }
 
@@ -375,7 +502,7 @@ namespace asmdeps
             string root,
             int listLevel = 0)
         {
-            var asm = TryLoadPathForReflectionOnly(asmName);
+            var asm = TryLoadPath(asmName);
             if (asm == null)
             {
                 var name = new AssemblyName(asmName);
@@ -384,7 +511,14 @@ namespace asmdeps
                 {
                     throw new FileNotFoundException(check);
                 }
-                asm = TryLoadPathForReflectionOnly(check);
+
+                asm = TryLoadPath(check);
+                var loadedAsmName = asm?.FullName?.ToString();
+                if (!(loadedAsmName is null) && loadedAsmName != asmName)
+                {
+                    var depMatch = deps.FirstOrDefault(d => d.FullName == asmName);
+                    depMatch?.StoreLoadedAssemblyName(new AssemblyName(loadedAsmName));
+                }
             }
 
             if (asm != null)
@@ -412,11 +546,12 @@ namespace asmdeps
                     var asmToCheckFile = Path.Combine(root, assemblyName.Name + ".dll");
                     if (File.Exists(asmToCheckFile))
                     {
-                        var asmToCheck = TryLoadPathForReflectionOnly(asmToCheckFile);
+                        var asmToCheck = TryLoadPath(asmToCheckFile);
                         if (asmToCheck == null)
                         {
                             continue;
                         }
+
                         dep.SetPathOnDisk(asmToCheckFile);
                         ListFileDeps(asmToCheck, deps, root, listLevel + 1);
                     }

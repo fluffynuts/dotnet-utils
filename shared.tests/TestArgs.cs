@@ -43,7 +43,7 @@ namespace shared.tests
                 Expect(result)
                     .To.Be.True();
                 Expect(args)
-                    .Not.To.Contain.Any()
+                    .Not.To.Contain.Any
                     .Equal.To(toFind);
             }
         }

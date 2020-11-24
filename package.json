@@ -1,10 +1,11 @@
 {
     "name": "dotnet-utils",
     "version": "1.0.0",
-    "description": "A simple batch script inspired by an answer on [StackOverflow](https://stackoverflow.com/questions/255669/how-to-enable-assembly-bind-failure-logging-fusion-in-net#answer-1527249)\r to enable or disable Fusion logging so you can get to the bottom of pesky assembly errors",
+    "description": "Some simple utils for debugging dotnet oddnesses",
     "scripts": {
-        "release": "run-s \"zarro release\"",
-        "zarro": "cross-env BUILD_TOOLS_FOLDER=tools zarro",
+        "build": "run-s \"zarro build\"",
+        "release": "cross-env BUILD_CONFIGURATION=Release run-s \"zarro build\"",
+        "zarro": "cross-env DOTNET_CORE=1 BUILD_TOOLS_FOLDER=tools BUILD_INCLUDE=dotnet-utils.sln zarro",
         "test": "run-s \"zarro test-dotnet\""
     },
     "repository": {
@@ -21,6 +22,6 @@
     "devDependencies": {
         "cross-env": "^7.0.2",
         "npm-run-all": "^4.1.5",
-        "zarro": "^1.68.0"
+        "zarro": "^1.81.0"
     }
 }

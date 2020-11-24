@@ -2,9 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFrameworks>net472;net50</TargetFrameworks>
   </PropertyGroup>
-
+  
+  <PropertyGroup Condition="'$(TargetFramework)'=='net472' And '$(Configuration)' == 'Release'">
+    <OutputPath>../bin</OutputPath>
+  </PropertyGroup>
+  
   <ItemGroup>
     <Compile Include="..\Pastel\src\ConsoleExtensions.cs">
       <Link>ConsoleExtensions.cs</Link>

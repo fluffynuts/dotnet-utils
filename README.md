@@ -39,7 +39,7 @@ dependency chain. I've found myself looking for this over and over, and finally
 found it again. So here it is.
 
 ### where?
-a net452-capable binary can be found at:
+a net472-capable binary can be found at:
 ```
 bin/asmdeps.exe
 ```

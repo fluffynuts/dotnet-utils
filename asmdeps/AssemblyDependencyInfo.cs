@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using shared;
 
@@ -15,13 +16,33 @@ namespace asmdeps
         public string CultureName { get; set; }
         public string PublicKeyToken { get; set; }
         public string Path { get; private set; }
+        public AssemblyName LoadedAssembly { get; private set; }
 
         public string PrettyFullName =>
             _fullName.PrettyFullName();
 
+        public bool IsMismatched(AssemblyRebind[] rebinds)
+        {
+            if (LoadedAssembly is null)
+            {
+                return false;
+            }
+
+            var matchingRebind = rebinds.FirstOrDefault(r => r.AssemblyName == _fullName.Name);
+            if (matchingRebind is null)
+            {
+                return true;
+            }
+
+            return !matchingRebind.IsValidRebind(
+                _fullName,
+                LoadedAssembly
+            );
+        }
+
         public AssemblyDependencyInfo(
-            AssemblyName fullName, 
-            bool loaded, 
+            AssemblyName fullName,
+            bool loaded,
             int level)
         {
             _fullName = fullName;
@@ -40,6 +61,11 @@ namespace asmdeps
             {
                 Path = path;
             }
+        }
+
+        public void StoreLoadedAssemblyName(AssemblyName expected)
+        {
+            LoadedAssembly = expected;
         }
     }
 }
