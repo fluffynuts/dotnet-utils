@@ -138,7 +138,10 @@ namespace asmdeps
 
                 foreach (var tree in kvp.Value)
                 {
-                    Console.WriteLine($"Depends on {kvp.Key.BrightRed()}:");
+                    Console.WriteLine(noColor
+                        ? $"Depends on {kvp.Key}:"
+                        : $"Depends on {kvp.Key.BrightRed()}:");
+
                     var trimmed = TrimTree(tree, kvp.Key);
                     // TODO: factor in rebinds for reverse lookup?
                     DisplayDeps(trimmed, new AssemblyRebind[0], noColor, showPaths, s => s.Contains(kvp.Key));
