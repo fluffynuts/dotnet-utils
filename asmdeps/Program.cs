@@ -95,7 +95,8 @@ namespace asmdeps
 
             foreach (var asmFile in asmPaths)
             {
-                var asm = TryLoadPath(asmFile);
+                var trawler = new AssemblyDependencyTrawler(Debug);
+                var asm = trawler.TryLoadPath(asmFile);
                 if (asm == null)
                 {
                     continue;
@@ -103,7 +104,7 @@ namespace asmdeps
 
                 var root = Path.GetDirectoryName(asmFile);
                 var deps = new List<AssemblyDependencyInfo>();
-                ListFileDeps(asm, deps, root);
+                trawler.ListFileDeps(asm, deps, root);
                 foreach (var seek in reverseLookup)
                 {
                     if (deps.Any(d => d.Name.Equals(seek, StringComparison.OrdinalIgnoreCase)))
@@ -186,7 +187,8 @@ namespace asmdeps
         {
             foreach (var asmFile in assemblyPaths)
             {
-                var asm = TryLoadPath(asmFile);
+                var lister = new AssemblyDependencyTrawler(Debug);
+                var asm = lister.TryLoadPath(asmFile);
                 if (asm == null)
                 {
                     LogErrorIfExplicitlySelected(asmFile, otherArgs);
@@ -197,7 +199,7 @@ namespace asmdeps
 
                 var deps = new List<AssemblyDependencyInfo>();
                 var root = Path.GetDirectoryName(asmFile);
-                var errors = ListFileDeps(asm, deps, root);
+                var errors = lister.ListFileDeps(asm, deps, root);
                 DisplayAssemblyAndDeps(asmFile, asm, deps, rebinds, noColor, showPaths);
                 if (!errors.Any())
                 {
@@ -222,37 +224,6 @@ namespace asmdeps
             }
         }
 
-        private static Dictionary<string, Assembly> LoadedAssemblies = new Dictionary<string, Assembly>();
-
-        private static Assembly TryLoadPath(string asmFile)
-        {
-            if (LoadedAssemblies.TryGetValue(asmFile, out var result))
-            {
-                return result;
-            }
-
-            try
-            {
-                Debug($"Attempt load from: {asmFile}");
-#if NET5_0
-                var toAdd = File.Exists(asmFile)
-                    ? Assembly.ReflectionOnlyLoadFrom(asmFile)
-                    : Assembly.ReflectionOnlyLoad(asmFile);
-#else
-                var toAdd = File.Exists(asmFile)
-                    ? Assembly.ReflectionOnlyLoadFrom(asmFile)
-                    : Assembly.ReflectionOnlyLoad(asmFile);
-#endif
-                LoadedAssemblies[asmFile] = toAdd;
-                return toAdd;
-            }
-            catch (Exception ex)
-            {
-                Debug($"Can't load assembly at {asmFile}");
-                Debug($" -> {ex.Message}");
-                return null;
-            }
-        }
 
         private static bool ShowDebug = Environment.GetEnvironmentVariable("DEBUG") != null;
 
@@ -464,109 +435,6 @@ namespace asmdeps
                 }
 
                 return $"\n{spacing} {str}";
-            }
-        }
-
-        // Define other methods and classes here
-        static IEnumerable<string> ListFileDeps(
-            Assembly asm,
-            List<AssemblyDependencyInfo> deps,
-            string root,
-            int listLevel = 0)
-        {
-            var errors = new List<string>();
-            var refs = asm.GetReferencedAssemblies();
-            foreach (var r in refs.OrderBy(r => r.Name))
-            {
-                if (deps.Any(d => d.FullName == r.FullName))
-                {
-                    continue;
-                }
-
-                var dep = new AssemblyDependencyInfo(r, true, listLevel);
-                deps.Add(dep);
-                try
-                {
-                    ListAsmDeps(r.FullName, deps, root, listLevel + 1);
-                }
-                catch (FileNotFoundException ex)
-                {
-                    errors.Add($"Unable to find dependency: {r.FullName} {ex.FileName}");
-                    dep.Loaded = false;
-                }
-            }
-
-            return errors;
-        }
-
-        static void ListAsmDeps(
-            string asmName,
-            List<AssemblyDependencyInfo> deps,
-            string root,
-            int listLevel = 0)
-        {
-            var asm = TryLoadPath(asmName);
-            if (asm == null)
-            {
-                var name = new AssemblyName(asmName);
-                var check = Path.Combine(root, name.Name + ".dll");
-                if (!File.Exists(check))
-                {
-                    throw new FileNotFoundException(check);
-                }
-
-                asm = TryLoadPath(check);
-                var loadedAsmName = asm?.FullName?.ToString();
-                if (!(loadedAsmName is null) && loadedAsmName != asmName)
-                {
-                    var depMatch = deps.FirstOrDefault(d => d.FullName == asmName);
-                    depMatch?.StoreLoadedAssemblyName(new AssemblyName(loadedAsmName));
-                }
-            }
-
-            if (asm != null)
-            {
-                var localPath = new Uri(asm.Location).LocalPath;
-                foreach (var dep in deps.Where(d => d.Name == asm.GetName().Name))
-                {
-                    dep.SetPathOnDisk(localPath);
-                }
-            }
-
-            var refs = asm?.GetReferencedAssemblies() ?? new AssemblyName[0];
-            foreach (var r in refs)
-            {
-                if (deps.Any(d => d.FullName == r.FullName))
-                {
-                    continue;
-                }
-
-                var dep = new AssemblyDependencyInfo(r, true, listLevel);
-                deps.Add(dep);
-                try
-                {
-                    var assemblyName = new AssemblyName(r.FullName);
-                    var asmToCheckFile = Path.Combine(root, assemblyName.Name + ".dll");
-                    if (File.Exists(asmToCheckFile))
-                    {
-                        var asmToCheck = TryLoadPath(asmToCheckFile);
-                        if (asmToCheck == null)
-                        {
-                            continue;
-                        }
-
-                        dep.SetPathOnDisk(asmToCheckFile);
-                        ListFileDeps(asmToCheck, deps, root, listLevel + 1);
-                    }
-                    else
-                    {
-                        ListAsmDeps(r.FullName, deps, root, listLevel + 1);
-                    }
-                }
-                catch (FileNotFoundException)
-                {
-                    dep.Loaded = false;
-                }
             }
         }
     }
