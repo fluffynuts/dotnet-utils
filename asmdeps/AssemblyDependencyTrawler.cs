@@ -35,8 +35,13 @@ namespace asmdeps
                 var loadedAsmName = asm?.FullName?.ToString();
                 if (!(loadedAsmName is null) && loadedAsmName != asmName)
                 {
-                    var depMatch = deps.FirstOrDefault(d => d.FullName == asmName);
-                    depMatch?.StoreLoadedAssemblyName(new AssemblyName(loadedAsmName));
+                    var matches = deps
+                        .Where(d => d.Name == name.Name && d.LoadedAssembly is null)
+                        .ToArray();
+                    foreach (var match in matches)
+                    {
+                        match.StoreLoadedAssemblyName(new AssemblyName(loadedAsmName));
+                    }
                 }
             }
 
