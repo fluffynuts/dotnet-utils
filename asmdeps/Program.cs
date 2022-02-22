@@ -55,7 +55,8 @@ namespace asmdeps
                     asmPaths,
                     noColor,
                     showPaths,
-                    args);
+                    args.ToArray()
+                );
             }
 
 
@@ -151,7 +152,7 @@ namespace asmdeps
         }
 
         private static IEnumerable<AssemblyDependencyInfo> TrimTree(
-            IEnumerable<AssemblyDependencyInfo> tree,
+            IList<AssemblyDependencyInfo> tree,
             string toNode)
         {
             var reversed = tree.Reversed();
@@ -183,7 +184,7 @@ namespace asmdeps
             IEnumerable<string> assemblyPaths,
             bool noColor,
             bool showPaths,
-            IEnumerable<string> otherArgs)
+            string[] otherArgs)
         {
             foreach (var asmFile in assemblyPaths)
             {
@@ -201,6 +202,13 @@ namespace asmdeps
                 var root = Path.GetDirectoryName(asmFile);
                 var errors = lister.ListFileDeps(asm, deps, root);
                 DisplayAssemblyAndDeps(asmFile, asm, deps, rebinds, noColor, showPaths);
+                #if NET6_0_OR_GREATER
+                if (showPaths && deps.Any(d => string.IsNullOrWhiteSpace(d.Path)))
+                {
+                    Console.WriteLine("* paths for assemblies bundled by publishing are not shown".DarkGrey());
+                }
+                #endif
+
                 if (!errors.Any())
                 {
                     continue;
@@ -225,7 +233,7 @@ namespace asmdeps
         }
 
 
-        private static bool ShowDebug = Environment.GetEnvironmentVariable("DEBUG") != null;
+        private static readonly bool ShowDebug = Environment.GetEnvironmentVariable("DEBUG") != null;
 
         private static void DisplayAssemblyAndDeps(
             string pathOnDisk,
@@ -236,7 +244,7 @@ namespace asmdeps
             bool showPaths)
         {
             var name = asm.GetName();
-            var pathPart = showPaths
+            var pathPart = showPaths && !string.IsNullOrWhiteSpace(pathOnDisk)
                 ? $"\n|  {pathOnDisk}".Grey()
                 : "";
             Console.WriteLine($"{(noColor ? name.FullName : name.PrettyFullName())}{pathPart}");
@@ -343,7 +351,7 @@ namespace asmdeps
                     spacing += "   ";
                 }
 
-                var pathPart = showPaths
+                var pathPart = showPaths && !string.IsNullOrWhiteSpace(dep.Path)
                     ? $"\n{spacing}  {dep.Path}"
                     : "";
                 message = string.IsNullOrWhiteSpace(message)

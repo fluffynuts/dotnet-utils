@@ -17,6 +17,7 @@ namespace shared
         private static readonly Color _brightMagenta = Color.FromArgb(255, 255, 128, 255);
         private static readonly Color _brightPink = Color.FromArgb(255, 255, 128, 160);
         private static readonly Color _grey = Color.FromArgb(255, 128, 128, 128);
+        private static readonly Color _darkGrey = Color.FromArgb(255, 80, 80, 80);
 
         public static string BrightRed(this string str)
         {
@@ -70,7 +71,7 @@ namespace shared
         private static int _rainbow;
 
         private static readonly Dictionary<int, Func<string, string>> RainbowLookup
-            = new Dictionary<int, Func<string, string>>()
+            = new()
             {
                 [0] = BrightPink,
                 [1] = BrightGreen,
@@ -93,6 +94,13 @@ namespace shared
             return DisableColor
                 ? str
                 : str.Pastel(_grey);
+        }
+
+        public static string DarkGrey(this string str)
+        {
+            return DisableColor
+                ? str
+                : str.Pastel(_darkGrey);
         }
 
         public static string ToHex(this byte[] bytes)

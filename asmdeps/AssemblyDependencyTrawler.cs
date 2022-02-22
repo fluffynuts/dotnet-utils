@@ -47,7 +47,14 @@ namespace asmdeps
 
             if (asm != null)
             {
-                var localPath = new Uri(asm.Location).LocalPath;
+#pragma warning disable IL3000
+                var assemblyLocation = string.IsNullOrWhiteSpace(asm.Location)
+                    ? ""
+                    : asm.Location;
+                var localPath = assemblyLocation == ""
+                    ? ""
+                    : new Uri(assemblyLocation).LocalPath;
+#pragma warning restore IL3000
                 foreach (var dep in deps.Where(d => d.Name == asm.GetName().Name))
                 {
                     dep.SetPathOnDisk(localPath);
@@ -101,10 +108,10 @@ namespace asmdeps
             try
             {
                 DebugLog($"Attempt load from: {asmFile}");
-#if NET5_0
+#if NET6_0_OR_GREATER
                 var toAdd = File.Exists(asmFile)
-                    ? Assembly.ReflectionOnlyLoadFrom(asmFile)
-                    : Assembly.ReflectionOnlyLoad(asmFile);
+                    ? Assembly.LoadFrom(asmFile)
+                    : Assembly.Load(asmFile);
 #else
                 var toAdd = File.Exists(asmFile)
                     ? Assembly.ReflectionOnlyLoadFrom(asmFile)
@@ -127,7 +134,7 @@ namespace asmdeps
         }
 
         // Define other methods and classes here
-        public IEnumerable<string> ListFileDeps(
+        public string[] ListFileDeps(
             Assembly asm,
             List<AssemblyDependencyInfo> deps,
             string root,
@@ -155,7 +162,7 @@ namespace asmdeps
                 }
             }
 
-            return errors;
+            return errors.ToArray();
         }
         
         private readonly Dictionary<string, Assembly> _loadedAssemblies = new Dictionary<string, Assembly>();
