@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net472;net60</TargetFrameworks>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   
-  <PropertyGroup Condition="'$(TargetFramework)'=='net60'">
+  <PropertyGroup Condition="'$(TargetFramework)'=='net6.0'">
     <AssemblyName>asmdeps-net60</AssemblyName>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile>
@@ -28,8 +28,12 @@
              Targets="Publish"/>
   </Target>
 
-  <Target Name="CopyArtifacts" AfterTargets="CoreBuild" Condition="'$(Configuration)' == 'Release'">
-    <Copy SourceFiles="bin\$(Configuration)\net60\win-x64\publish\asmdeps-net60.exe" DestinationFiles="..\bin\asmdeps-net60.exe" />
+  <Target Name="CopyArtifacts" AfterTargets="CoreBuild" Condition="'$(Configuration)|$(TargetFramework)' == 'Release|net6.0'">
+    <Copy SourceFiles="bin\$(Configuration)\net6.0\win-x64\publish\asmdeps-net60.exe" DestinationFiles="..\bin\asmdeps-net60.exe" />
+  </Target>
+
+  <Target Name="CopyArtifacts" AfterTargets="CoreBuild" Condition="'$(Configuration)|$(TargetFramework)' == 'Release|net472'">
+    <Copy SourceFiles="bin\$(Configuration)\net472\publish\asmdeps.exe" DestinationFiles="..\bin\asmdeps.exe" />
   </Target>
 
 </Project>

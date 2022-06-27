@@ -88,7 +88,7 @@ namespace asmdeps
         }
 
         private static void DumpReverseLookupFor(IEnumerable<string> asmPaths,
-            IEnumerable<string> reverseLookup,
+            string[] reverseLookup,
             bool noColor,
             bool showPaths)
         {
@@ -108,42 +108,51 @@ namespace asmdeps
                 trawler.ListFileDeps(asm, deps, root);
                 foreach (var seek in reverseLookup)
                 {
-                    if (deps.Any(d => d.Name.Equals(seek, StringComparison.OrdinalIgnoreCase)))
+                    var match = deps.FirstOrDefault(
+                        d => d.Name.Equals(seek, StringComparison.OrdinalIgnoreCase)
+                    );
+                    if (match is null)
                     {
-                        if (!final.ContainsKey(seek))
-                        {
-                            final[seek] = new List<List<AssemblyDependencyInfo>>();
-                        }
-
-                        foreach (var dep in deps)
-                        {
-                            dep.Level++;
-                        }
-
-                        deps.Insert(0, new AssemblyDependencyInfo(
-                            asm.GetName(),
-                            true,
-                            0));
-                        deps[0].SetPathOnDisk(asmFile);
-                        final[seek].Add(deps);
+                        continue;
                     }
+
+                    if (!final.ContainsKey(match.FullName))
+                    {
+                        final[match.FullName] = new List<List<AssemblyDependencyInfo>>();
+                    }
+
+                    foreach (var dep in deps)
+                    {
+                        dep.Level++;
+                    }
+
+                    deps.Insert(0, new AssemblyDependencyInfo(
+                        asm.GetName(),
+                        true,
+                        0));
+                    deps[0].SetPathOnDisk(asmFile);
+                    final[match.FullName].Add(deps);
                 }
             }
 
             var dumped = 0;
             foreach (var kvp in final)
             {
+                if (!kvp.Value.Any())
+                {
+                    continue;
+                }
+
                 if (dumped++ > 0)
                 {
                     Console.WriteLine("\n");
                 }
 
+                Console.WriteLine(noColor
+                    ? $"Depends on {kvp.Key}:"
+                    : $"Depends on {kvp.Key.BrightRed()}:");
                 foreach (var tree in kvp.Value)
                 {
-                    Console.WriteLine(noColor
-                        ? $"Depends on {kvp.Key}:"
-                        : $"Depends on {kvp.Key.BrightRed()}:");
-
                     var trimmed = TrimTree(tree, kvp.Key);
                     // TODO: factor in rebinds for reverse lookup?
                     DisplayDeps(trimmed, new AssemblyRebind[0], noColor, showPaths, s => s.Contains(kvp.Key));
@@ -202,12 +211,12 @@ namespace asmdeps
                 var root = Path.GetDirectoryName(asmFile);
                 var errors = lister.ListFileDeps(asm, deps, root);
                 DisplayAssemblyAndDeps(asmFile, asm, deps, rebinds, noColor, showPaths);
-                #if NET6_0_OR_GREATER
+#if NET6_0_OR_GREATER
                 if (showPaths && deps.Any(d => string.IsNullOrWhiteSpace(d.Path)))
                 {
                     Console.WriteLine("* paths for assemblies bundled by publishing are not shown".DarkGrey());
                 }
-                #endif
+#endif
 
                 if (!errors.Any())
                 {
