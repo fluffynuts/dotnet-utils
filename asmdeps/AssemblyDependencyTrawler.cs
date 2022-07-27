@@ -25,13 +25,15 @@ namespace asmdeps
             if (asm == null)
             {
                 var name = new AssemblyName(asmName);
-                var check = Path.Combine(root, name.Name + ".dll");
-                if (!File.Exists(check))
+                var seek = new[]
                 {
-                    throw new FileNotFoundException(check);
-                }
-
-                asm = TryLoadPath(check);
+                    Path.Combine(root, name.Name + ".dll"),
+                    Path.Combine(root, name.Name + ".exe")
+                };
+                var found = seek.FirstOrDefault(File.Exists)
+                    ?? throw new FileNotFoundException(Path.Combine(root, name.Name + ".(dll|exe)"));
+                
+                asm = TryLoadPath(found);
                 var loadedAsmName = asm?.FullName?.ToString();
                 if (!(loadedAsmName is null) && loadedAsmName != asmName)
                 {
@@ -164,7 +166,7 @@ namespace asmdeps
 
             return errors.ToArray();
         }
-        
+
         private readonly Dictionary<string, Assembly> _loadedAssemblies = new Dictionary<string, Assembly>();
     }
 }
