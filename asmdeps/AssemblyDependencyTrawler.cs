@@ -31,8 +31,14 @@ namespace asmdeps
                     Path.Combine(root, name.Name + ".exe")
                 };
                 var found = seek.FirstOrDefault(File.Exists)
-                    ?? throw new FileNotFoundException(Path.Combine(root, name.Name + ".(dll|exe)"));
-                
+                    ?? throw new FileNotFoundException(
+                        // can't use Path.Combine because instead of just doing its job, it chucks
+                        // because of the |
+                        string.Join(Path.PathSeparator.ToString(),
+                            root, name.Name + ".(dll|exe)"
+                        )
+                    );
+
                 asm = TryLoadPath(found);
                 var loadedAsmName = asm?.FullName?.ToString();
                 if (!(loadedAsmName is null) && loadedAsmName != asmName)
