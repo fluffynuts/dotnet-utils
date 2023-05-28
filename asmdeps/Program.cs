@@ -22,7 +22,9 @@ namespace asmdeps
             }
 
             var showPaths = args.ReadFlag("--show-paths", "-p");
-            var noColor = args.ReadFlag("--no-color", "-n") || Console.IsOutputRedirected;
+            var noColor = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("NO_COLOR")) ||
+                args.ReadFlag("--no-color", "-n") || 
+                Console.IsOutputRedirected;
 
             var reverseLookup = args.ReadParameter(
                 ParameterOptions.Conservative,
