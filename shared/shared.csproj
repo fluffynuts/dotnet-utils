@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
+    <DefineConstants>$(DefineConstants);BUILD_PEANUTBUTTER_INTERNAL</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,11 +11,36 @@
       <Link>ConsoleExtensions.cs</Link>
     </Compile>
     <Compile Include="..\PeanutButter\source\Utils\PeanutButter.XmlUtils\XElementExtensions.cs">
-      <Link>XElementExtensions.cs</Link>
+      <Link>Imported\XElementExtensions.cs</Link>
     </Compile>
     <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\ExtensionsForIEnumerables.cs">
-      <Link>ExtensionsForIEnumerables.cs</Link>
+      <Link>Imported\ExtensionsForIEnumerables.cs</Link>
     </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\PathType.cs">
+      <Link>Imported\PathType.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Platform.cs">
+      <Link>Imported\Platform.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\StringExtensions.cs">
+      <Link>Imported\StringExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\ByteArrayExtensions.cs">
+      <Link>Imported\ByteArrayExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\UnevenZipException.cs">
+      <Link>Imported\UnevenZipException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\CannotZipNullException.cs">
+      <Link>Imported\CannotZipNullException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\RandomNumber.cs">
+      <Link>Imported\RandomNumber.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Imported\" />
   </ItemGroup>
 
 </Project>

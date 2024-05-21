@@ -4,7 +4,7 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using PeanutButter.Utils;
+using Imported.PeanutButter.Utils;
 using PeanutButter.XmlUtils;
 
 namespace find_orphaned_code_files

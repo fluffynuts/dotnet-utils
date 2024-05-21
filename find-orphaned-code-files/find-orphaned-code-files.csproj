@@ -2,16 +2,17 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net50</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>find_orphaned_code_files</RootNamespace>
+    <DefineConstants>$(DefineConstants);BUILD_PEANUTBUTTER_INTERNAL</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="..\Pastel\src\ConsoleExtensions.cs">
       <Link>ConsoleExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.XmlUtils\XElementExtensions.cs">
-      <Link>XElementExtensions.cs</Link>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\DecimalDecorator.cs">
+      <Link>Imported\DecimalDecorator.cs</Link>
     </Compile>
     <Compile Include="..\shared\Args.cs">
       <Link>Args.cs</Link>
@@ -22,12 +23,40 @@
     <Compile Include="..\shared\StringExtensions.cs">
       <Link>StringExtensions.cs</Link>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.XmlUtils\XElementExtensions.cs">
+      <Link>Imported\XElementExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\ExtensionsForIEnumerables.cs">
-      <Link>ExtensionsForIEnumerables.cs</Link>
+      <Link>Imported\ExtensionsForIEnumerables.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\PathType.cs">
+      <Link>Imported\PathType.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Platform.cs">
+      <Link>Imported\Platform.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\StringExtensions.cs">
+      <Link>Imported\StringExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\ByteArrayExtensions.cs">
+      <Link>Imported\ByteArrayExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\UnevenZipException.cs">
+      <Link>Imported\UnevenZipException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\CannotZipNullException.cs">
+      <Link>Imported\CannotZipNullException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\RandomNumber.cs">
+      <Link>Imported\RandomNumber.cs</Link>
     </Compile>
   </ItemGroup>
+
   <Target Name="OnBuildCompletion" AfterTargets="CoreBuild">
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\bin" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="..\bin"/>
   </Target>
 
 </Project>

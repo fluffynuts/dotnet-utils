@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <TargetFrameworks>net472;net8.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   
@@ -35,5 +35,9 @@
   <Target Name="CopyArtifacts" AfterTargets="CoreBuild" Condition="'$(Configuration)|$(TargetFramework)' == 'Release|net472'">
     <Copy SourceFiles="bin\$(Configuration)\net472\publish\asmdeps.exe" DestinationFiles="..\bin\asmdeps.exe" />
   </Target>
+  
+  <ItemGroup>
+    <Reference Include="System.Collections" />
+  </ItemGroup>
 
 </Project>

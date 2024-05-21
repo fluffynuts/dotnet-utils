@@ -1,0 +1,370 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <DefineConstants>$(DefineConstants);BUILD_PEANUTBUTTER_INTERNAL;BUILD_PEANUTBUTTER_EASYARGS_INTERNAL;BUILD_PEANUTBUTTER_DUCKTYPING_INTERNAL</DefineConstants>
+    <DefineConstants Condition="$(TargetFramework) == 'net6.0'">$(DefineConstants);NETSTANDARD</DefineConstants>
+    <DefineConstants Condition="$(TargetFramework) == 'net7.0'">$(DefineConstants);NETSTANDARD</DefineConstants>
+    <DefineConstants Condition="$(TargetFramework) == 'net8.0'">$(DefineConstants);NETSTANDARD</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\AutoConversion\ConverterExtensions.cs">
+      <Link>Imported\AutoConversion\ConverterExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\AutoConversion\ConverterLocator.cs">
+      <Link>Imported\AutoConversion\ConverterLocator.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\AutoConversion\Converters\ConverterBase.cs">
+      <Link>Imported\AutoConversion\Converters\ConverterBase.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\AutoConversion\Converters\EnumConverter.cs">
+      <Link>Imported\AutoConversion\Converters\EnumConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\AutoConversion\Converters\GenericCastingConverter.cs">
+      <Link>Imported\AutoConversion\Converters\GenericCastingConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\AutoConversion\Converters\GenericNullableStringConverter.cs">
+      <Link>Imported\AutoConversion\Converters\GenericNullableStringConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\AutoConversion\Converters\GenericStringArrayConverter.cs">
+      <Link>Imported\AutoConversion\Converters\GenericStringArrayConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\AutoConversion\Converters\GenericStringConverter.cs">
+      <Link>Imported\AutoConversion\Converters\GenericStringConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\AutoConversion\Converters\GenericStringConverterBase.cs">
+      <Link>Imported\AutoConversion\Converters\GenericStringConverterBase.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\AutoConversion\IConverter.cs">
+      <Link>Imported\AutoConversion\IConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Comparers\Comparers.cs">
+      <Link>Imported\AutoConversion\Comparers\Comparers.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Comparers\MethodInfoComparer.cs">
+      <Link>Imported\AutoConversion\Comparers\MethodInfoComparer.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Comparers\MethodInfoContainer.cs">
+      <Link>Imported\AutoConversion\Comparers\MethodInfoContainer.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Comparers\PropertyInfoComparer.cs">
+      <Link>Imported\AutoConversion\Comparers\PropertyInfoComparer.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Exceptions\BackingFieldForPropertyNotFoundException.cs">
+      <Link>Imported\Exceptions\BackingFieldForPropertyNotFoundException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Exceptions\MethodNotFoundException.cs">
+      <Link>Imported\Exceptions\MethodNotFoundException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Exceptions\ParameterCountMismatchException.cs">
+      <Link>Imported\Exceptions\ParameterCountMismatchException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Exceptions\PropertyNotFoundException.cs">
+      <Link>Imported\Exceptions\PropertyNotFoundException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Exceptions\ReadOnlyPropertyException.cs">
+      <Link>Imported\Exceptions\ReadOnlyPropertyException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Exceptions\UnDuckableException.cs">
+      <Link>Imported\Exceptions\UnDuckableException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Exceptions\UnresolveableParameterOrderMismatchException.cs">
+      <Link>Imported\Exceptions\UnresolveableParameterOrderMismatchException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Exceptions\WriteOnlyPropertyException.cs">
+      <Link>Imported\Exceptions\WriteOnlyPropertyException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Extensions\ConversionExtensions.cs">
+      <Link>Imported\Extensions\ConversionExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Extensions\CustomAttributeHelperExtensions.cs">
+      <Link>Imported\Extensions\CustomAttributeHelperExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Extensions\DuckableTypesCache.cs">
+      <Link>Imported\Extensions\DuckableTypesCache.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Extensions\DuckTypingCollectionExtensions.cs">
+      <Link>Imported\Extensions\DuckTypingCollectionExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Extensions\DuckTypingDictionaryExtensions.cs">
+      <Link>Imported\Extensions\DuckTypingDictionaryExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Extensions\DuckTypingExtensionSharedMethods.cs">
+      <Link>Imported\Extensions\DuckTypingExtensionSharedMethods.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Extensions\DuckTypingHelperExtensions.cs">
+      <Link>Imported\Extensions\DuckTypingHelperExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Extensions\DuckTypingNameValueCollectionExtensions.cs">
+      <Link>Imported\Extensions\DuckTypingNameValueCollectionExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Extensions\DuckTypingObjectExtensions.cs">
+      <Link>Imported\Extensions\DuckTypingObjectExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Extensions\FuzzyDictionaryExtensions.cs">
+      <Link>Imported\Extensions\FuzzyDictionaryExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Extensions\FuzzyMatchingExtensions.cs">
+      <Link>Imported\Extensions\FuzzyMatchingExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Extensions\MergingExtensions.cs">
+      <Link>Imported\Extensions\MergingExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Extensions\TypeLookup.cs">
+      <Link>Imported\Extensions\TypeLookup.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Properties\AssemblyInfo.cs">
+      <Link>Imported\Properties\AssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Shimming\DefaultPropertyInfoFetcher.cs">
+      <Link>Imported\Shimming\DefaultPropertyInfoFetcher.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Shimming\DictionaryShimSham.cs">
+      <Link>Imported\Shimming\DictionaryShimSham.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Shimming\IPropertyInfoFetcher.cs">
+      <Link>Imported\Shimming\IPropertyInfoFetcher.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Shimming\IsADuckAttribute.cs">
+      <Link>Imported\Shimming\IsADuckAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Shimming\IShimSham.cs">
+      <Link>Imported\Shimming\IShimSham.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Shimming\ITypeMaker.cs">
+      <Link>Imported\Shimming\ITypeMaker.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Shimming\PropertyInfoContainer.cs">
+      <Link>Imported\Shimming\PropertyInfoContainer.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Shimming\ShimSham.cs">
+      <Link>Imported\Shimming\ShimSham.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Shimming\ShimShamBase.cs">
+      <Link>Imported\Shimming\ShimShamBase.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.DuckTyping\Shimming\TypeMaker.cs">
+      <Link>Imported\Shimming\TypeMaker.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\ArgParserOptionsExtensions.cs">
+      <Link>Imported\ArgParserOptionsExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\CopyrightAttribute.cs">
+      <Link>Imported\Attributes\CopyrightAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\DefaultAttribute.cs">
+      <Link>Imported\Attributes\DefaultAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\DescriptionAttribute.cs">
+      <Link>Imported\Attributes\DescriptionAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\DisableGeneratedShortNameAttribute.cs">
+      <Link>Imported\Attributes\DisableGeneratedShortNameAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\ExistingFileAttribute.cs">
+      <Link>Imported\Attributes\ExistingFileAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\ExistingFolderAttribute.cs">
+      <Link>Imported\Attributes\ExistingFolderAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\IgnoreAttribute.cs">
+      <Link>Imported\Attributes\IgnoreAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\LongNameAttribute.cs">
+      <Link>Imported\Attributes\LongNameAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\MaxAttribute.cs">
+      <Link>Imported\Attributes\MaxAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\MinAttribute.cs">
+      <Link>Imported\Attributes\MinAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\MoreInfoAttribute.cs">
+      <Link>Imported\Attributes\MoreInfoAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\NumericAttribute.cs">
+      <Link>Imported\Attributes\NumericAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\ObjectAttribute.cs">
+      <Link>Imported\Attributes\ObjectAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\RequiredAttribute.cs">
+      <Link>Imported\Attributes\RequiredAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\ShortNameAttribute.cs">
+      <Link>Imported\Attributes\ShortNameAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\Attributes\StringAttribute.cs">
+      <Link>Imported\Attributes\StringAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\CommandlineArgument.cs">
+      <Link>Imported\CommandlineArgument.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\ConflictsWithAttribute.cs">
+      <Link>Imported\ConflictsWithAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\DictionaryExtensions.cs">
+      <Link>Imported\DictionaryExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\ExitCodes.cs">
+      <Link>Imported\ExitCodes.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\GatheringExtensions.cs">
+      <Link>Imported\GatheringExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\IHasValue.cs">
+      <Link>Imported\IHasValue.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\ParserExtensions.cs">
+      <Link>Imported\ParserExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\ParserOptions.cs">
+      <Link>Imported\ParserOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\StringCollection.cs">
+      <Link>Imported\StringCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.EasyArgs\StringPair.cs">
+      <Link>Imported\StringPair.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\AutoDeleter.cs">
+      <Link>Imported\AutoDeleter.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Retry.cs">
+      <Link>Imported\Retry.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\MaxAttemptsRetryContext.cs">
+      <Link>Imported\MaxAttemptsRetryContext.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\TimeBasedRetryContext.cs">
+      <Link>Imported\TimeBasedRetryContext.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\IBackoffStrategy.cs">
+      <Link>Imported\IBackoffStrategy.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\DefaultBackoffStrategy.cs">
+      <Link>Imported\DefaultBackoffStrategy.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\RetriesExceededException.cs">
+      <Link>Imported\RetriesExceededException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Platform.cs">
+      <Link>Imported\Platform.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\AutoTempFolder.cs">
+      <Link>Imported\AutoTempFolder.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\AutoWorkFolder.cs">
+      <Link>Imported\AutoWorkFolder.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\CannotZipNullException.cs">
+      <Link>Imported\CannotZipNullException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\UnevenZipException.cs">
+      <Link>Imported\UnevenZipException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Dictionaries\CaseWarpingDictionaryWrapper.cs">
+      <Link>Imported\Dictionaries\CaseWarpingDictionaryWrapper.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Dictionaries\DefaultDictionary.cs">
+      <Link>Imported\Dictionaries\DefaultDictionary.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Dictionaries\DictionaryWrappingConnectionStringSettingCollection.cs">
+      <Link>Imported\Dictionaries\DictionaryWrappingConnectionStringSettingCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Dictionaries\DictionaryWrappingNameValueCollection.cs">
+      <Link>Imported\Dictionaries\DictionaryWrappingNameValueCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Dictionaries\DictionaryWrappingObject.cs">
+      <Link>Imported\Dictionaries\DictionaryWrappingObject.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Dictionaries\GenericDictionaryEnumerator.cs">
+      <Link>Imported\Dictionaries\GenericDictionaryEnumerator.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Dictionaries\MergeDictionary.cs">
+      <Link>Imported\Dictionaries\MergeDictionary.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Dictionaries\OrderedDictionary.cs">
+      <Link>Imported\Dictionaries\OrderedDictionary.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Dictionaries\RedirectingDictionary.cs">
+      <Link>Imported\Dictionaries\RedirectingDictionary.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Dictionaries\TransformingDictionary.cs">
+      <Link>Imported\Dictionaries\TransformingDictionary.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Dictionaries\ValidatingDictionary.cs">
+      <Link>Imported\Dictionaries\ValidatingDictionary.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\ExtensionsForIEnumerables.cs">
+      <Link>Imported\ExtensionsForIEnumerables.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\StringExtensions.cs">
+      <Link>Imported\StringExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\TypeExtensions.cs">
+      <Link>Imported\TypeExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\ObjectExtensions.cs">
+      <Link>Imported\ObjectExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\DecimalDecorator.cs">
+      <Link>Imported\DecimalDecorator.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\DeepEqualityTester.cs">
+      <Link>Imported\DeepEqualityTester.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\MemberNotFoundException.cs">
+      <Link>Imported\MemberNotFoundException.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\PropertyOrField.cs">
+      <Link>Imported\PropertyOrField.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\EnumerableWrapper.cs">
+      <Link>Imported\EnumerableWrapper.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\DictionaryExtensions.cs">
+      <Link>Imported\DictionaryExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\PyLike.cs">
+      <Link>Imported\PyLike.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\ArrayExtensions.cs">
+      <Link>Imported\ArrayExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\Stringifier.cs">
+      <Link>Imported\Stringifier.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\ListExtensions.cs">
+      <Link>Imported\ListExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\ByteArrayExtensions.cs">
+      <Link>Imported\ByteArrayExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\PeanutButter\source\Utils\PeanutButter.Utils\RandomNumber.cs">
+      <Link>Imported\RandomNumber.cs</Link>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Include="..\Pastel\src\ConsoleExtensions.cs">
+      <Link>ConsoleExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\shared\StringExtensions.cs">
+      <Link>StringExtensions.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NSubstitute" Version="5.1.0" />
+    <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.1" />
+  </ItemGroup>
+
+
+</Project>

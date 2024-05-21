@@ -4,8 +4,9 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using find_orphaned_code_files;
-using PeanutButter.Utils;
+using Imported.PeanutButter.Utils;
 using shared;
+using StringExtensions = shared.StringExtensions;
 
 namespace remove_project_files
 {
