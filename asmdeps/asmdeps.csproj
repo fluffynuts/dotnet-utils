@@ -5,13 +5,13 @@
     <TargetFrameworks>net472;net8.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="'$(TargetFramework)'=='net6.0'">
     <AssemblyName>asmdeps-net60</AssemblyName>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Compile Include="..\Pastel\src\ConsoleExtensions.cs">
       <Link>ConsoleExtensions.cs</Link>
@@ -35,7 +35,7 @@
   <Target Name="CopyArtifacts" AfterTargets="CoreBuild" Condition="'$(Configuration)|$(TargetFramework)' == 'Release|net472'">
     <Copy SourceFiles="bin\$(Configuration)\net472\publish\asmdeps.exe" DestinationFiles="..\bin\asmdeps.exe" />
   </Target>
-  
+
   <ItemGroup>
     <Reference Include="System.Collections" />
   </ItemGroup>
